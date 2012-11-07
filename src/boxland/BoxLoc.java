@@ -3,7 +3,7 @@ package boxland;
 import java.util.Random;
 import javax.media.opengl.GL2;
 
-public class TerrLoc {
+public class BoxLoc {
 
 	public static int animateCount = 0;
 	
@@ -13,7 +13,7 @@ public class TerrLoc {
 	private static final int inertsNumber = 10 * sizeMultiple;
 
 	public static final float dimX = sizeMultiple * 12; // 16
-	public static final float dimY = sizeMultiple * 8; // 8
+	public static final float dimY = sizeMultiple * 8;  // 8
 	public static final float dimZ = sizeMultiple * 10; // 10
 		
 	public static float startX = -dimX/2.0f;
@@ -25,26 +25,39 @@ public class TerrLoc {
 	private static WorldObject[][][] wobjects;
 
 	private static Mob theMobs[] = new Mob[mobsNumber];
-	private static Inert theInerts[] = new Inert[inertsNumber];
+	private static WorldObject theInerts[] = new WorldObject[inertsNumber];
 	
 	// used to identify other elements in the grid by their string
 	public static String getWobID(int x, int y, int z) {
-	
-		if ( wobjects[x][y][z] != null ) { return wobjects[x][y][z].getID(); }
-		
+		// inbounds
+		if ( !((x < 0)  || (y < 0) || (z < 0) || (x > dimX-1) || (y > dimY-1) || (z > dimZ-1) )) { 
+
+			if ( wobjects[x][y][z] != null ) 
+				return wobjects[x][y][z].getWobID();
+		}
 		return "Vacant";
 	}
 
 	// Check for along borders, later for climbable surfaces
 	public static boolean checkHasGround(int x, int y, int z) {
-		if ( (x == 0) || (y == 0) || (z == 0) || (x == dimX-1) || (y == dimY-1) || (z == dimZ-1) ) 
-			{ return true; } else {	return false; }
+		// inbounds
+		if ( !((x < 0)  || (y < 0) || (z < 0) || (x > dimX-1) || (y > dimY-1) || (z > dimZ-1) )) {
+
+			if ( (x == 0) || (y == 0) || (z == 0) || (x == dimX-1) || (y == dimY-1) || (z == dimZ-1) ) 
+				return true;
+		}
+		return false;
 	}
 	
 	// Check for the walls
 	public static boolean checkIsGround(int x, int y, int z) {
-		if ( (x == -1) || (y == -1) || (z == -1) || (x == dimX) || (y == dimY) || (z == dimZ) ) 
-			{ return true; } else {	return false; }
+		// inbounds
+		if ( !((x < 0)  || (y < 0) || (z < 0) || (x > dimX-1) || (y > dimY-1) || (z > dimZ-1) )) {
+
+			if ( (x == -1) || (y == -1) || (z == -1) || (x == dimX) || (y == dimY) || (z == dimZ) ) 
+				return true;
+		}
+		return false;
 	}
 	
 	public static WorldObject getObj(int x, int y, int z) {
@@ -104,7 +117,7 @@ public class TerrLoc {
 	    		wobjects[x][y][z] = wo;
 	    		wo.updateXYZ(x, y, z);
 	    		
-	    		return true;
+	    		return true; // this triggers a move animation
 	    		
 	    	} else { 
 	    		
@@ -113,14 +126,14 @@ public class TerrLoc {
 	    		
 	    	}
 		}
-		return false;
+		return false; // no move animation
 	}
 	
 	public void display(GL2 gl) {
 		
         if ( animateCount == mobsNumber ) {
         	animateCount = 0;
-    		Cubists.runProcSql("BEGIN TRIM_EVENT_SCORING; END;");
+    		Boxland.runProcSql("BEGIN TRIM_EVENT_SCORING; END;");
         }
 				
 		theMobs[animateCount].updateMob();
@@ -138,7 +151,7 @@ public class TerrLoc {
         			if ( wobjects[k][j][i] != null ) wobjects[k][j][i].drawObj(gl);
 	}	
 
-	public TerrLoc() {
+	public BoxLoc() {
 		
 		// world stuff
         wobjects = new WorldObject[(int) dimX][(int) dimY][(int) dimZ];
@@ -151,15 +164,15 @@ public class TerrLoc {
         //mob setup stuff 
     	for(int i=0; i<mobsNumber; i++) { 
     		if ( i<mobsNumber/2 ) {
-    			theMobs[i] = new RedMob(i); 
+    			theMobs[i] = new Mob("Red", 1.0f, 0.0f, 0.0f); 
     		} else {
-    			theMobs[i] = new BlueMob(i);
+    			theMobs[i] = new Mob("Blue", 0.0f, 0.0f, 1.0f);
     		}
     		
     		// Insert the object ID into the database
-    		Cubists.runInsertSql( "INSERT INTO OBJ ( OBJ_ID, OBJ_CD, OBJ_TEAM ) SELECT 0, " + i + ", '" + theMobs[i].getID() + "' FROM DUAL" );
-    		int MobDBID = Cubists.runSelectINTSql("SELECT MAX(OBJ_ID) FROM OBJ");
-    		theMobs[i].setMobDBID( MobDBID );
+    		Boxland.runInsertSql( "INSERT INTO OBJ ( OBJ_ID, OBJ_CD, OBJ_TEAM ) SELECT 0, " + i + ", '" + theMobs[i].getWobID() + "' FROM DUAL" );
+    		int MobDBID = Boxland.runSelectINTSql("SELECT MAX(OBJ_ID) FROM OBJ");
+    		theMobs[i].setWobDBID( MobDBID );
     		
     		// Insert the object pointer into the location matrix
     		insertObj( theMobs[i] );
@@ -168,7 +181,7 @@ public class TerrLoc {
     	
     	for(int i=0; i<inertsNumber; i++) {
     	// create the inerts and place. If xyz is taken they will be moved and their object's xyx updated
-    		theInerts[i] = new Inert();    		
+    		theInerts[i] = new WorldObject("Inert", 0.0f, 1.0f, 0.0f);    		
     		insertObj(theInerts[i]) ;
    	    }
 	}

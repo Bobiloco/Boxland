@@ -1,40 +1,14 @@
 package boxland;
 
-import java.util.Random;
-import javax.media.opengl.GL2;
-
 public class Mob extends WorldObject {
 
-    public int experience = 0;
-    public int explodeSize = 10;
-    public int explodeCount = 0;
+	public int experience = 0;
     public int fedCount = 50;
-    
-    private int mobID = -1;
-    private int mobDBID = -1;
-    
-    Random generator = new Random();
-    
-    public Mob(int mID) {
-		mobID = mID;
-	}
 
-	public int getMobID() {
-    	return mobID;
+    public Mob( String x, float r, float g, float b) {
+    	super(x, r, g, b);
     }
-    
-	public String getID() {
-		return "Mob";
-	}
-    
-    public void setMobDBID(int MobDBID) { 
-    	this.mobDBID = MobDBID;
-    }
-    
-    public int getMobDBID() {
-    	return mobDBID;
-    }
-    
+
     public void updateMob() {
 		
     	String[] faceToken;
@@ -63,22 +37,19 @@ public class Mob extends WorldObject {
     		if ( facing == 5 ) dirZ = dirZ-1;
             if ( facing == 6 ) dirZ = dirZ+1;
             
-    		if ( !TerrLoc.checkIsGround(dirX,dirY,dirZ) ) {
-    			if ( TerrLoc.checkHasGround(dirX,dirY,dirZ) ) {
+    		if ( !BoxLoc.checkIsGround(dirX,dirY,dirZ) ) {
+    			if ( BoxLoc.checkHasGround(dirX,dirY,dirZ) ) {
     				
-    				faceToken[facing] = TerrLoc.getWobID(dirX, dirY, dirZ);
+    				faceToken[facing] = BoxLoc.getWobID(dirX, dirY, dirZ);
     				if ( facing == 0 ) faceToken[facing] = "Self";
     			
-    				// System.out.println("Created faceToken[" + facing + "] = " + faceToken[facing] );
     			}
     		}
     	}
-    	// This will return an existing decisionDBID or create a new one ( and a new choice node ) and return it
-    	int facing = Cubists.runChoiceEvent("{ ? = call choice_event( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}",
-    												mobDBID,
-    												locX,
-    												locY,
-    												locZ,
+
+    	// Choice Events create decisions, choices ( if new ), then score them and return the 'best' facing
+    	int facing = Boxland.runChoiceEvent("{ ? = call choice_event( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)}",
+    												wobDBID, locX, locY, locZ,
     												faceToken[0],
     												faceToken[1],
     												faceToken[2],
@@ -87,8 +58,6 @@ public class Mob extends WorldObject {
     												faceToken[5],
     												faceToken[6]);
 
-    	// System.out.println("Created or chose facing: " + facing );
-    	
     	if ( facing == 0 ) {
     		// sit still
     	} else { 
@@ -104,7 +73,7 @@ public class Mob extends WorldObject {
     		if ( facing == 5 ) dirZ = dirZ-1;
             if ( facing == 6 ) dirZ = dirZ+1;
     		
-            if ( TerrLoc.moveObj(this,dirX,dirY,dirZ) ) startAnimate(facing);
+            if ( BoxLoc.moveObj(this,dirX,dirY,dirZ) ) startAnimate(facing);
     	}
     }
     
@@ -116,40 +85,34 @@ public class Mob extends WorldObject {
     	fedCount = 50;
     	
     	// Removes the mob from the grid and record it in the database as 'Killed' xyz
-
-    	Cubists.runKilledEvent("{ call killed_event( ? )}", mobDBID );
+    	Boxland.runKilledEvent("{ call killed_event( ? )}", wobDBID );
 		
     	// Remove it from the grid
-    	TerrLoc.removeObj(this);
+    	BoxLoc.removeObj(this);
     	
     	// Re-insert the mob randomly
-		TerrLoc.insertObj(this);
+    	BoxLoc.insertObj(this);
 
 	}
     
-    public void explode() {
-    	if ( explodeCount > 0 ) {
-			explodeCount++;
-			if ( explodeCount > explodeSize ) explodeCount = 0;
+	public void eat(WorldObject woEaten) {
+		
+		if (woEaten.getWobID() != this.getWobID()) {
+        	
+			// This is new from superclass, mob animation stuff
+			if ( explodeCount == 0 ) explodeCount = 1;
+    		if ( experience < 10 ) experience++;
+        	fedCount = fedCount + 50;
+        	
+        	woEaten.killed();	
 		}
-    }
-    
+	}
+	
     public void drawActions() {
 
-    	growSize();
-		explode();
-		this.animate();
-		if ( experience > 10 ) experience = 10;
-   	    drawSize = cubeSize + ( growCount + experience ) * growSize + explodeCount * growSize ;
+		animate();
+   	    // This line adds experience to the draw size
+		drawSize = cubeSize + ( growCount + experience ) * growSize + explodeCount * growSize ;
 
     }
-    
-	public void drawObj(GL2 gl2) { 
-		
-		drawActions();
-		
-		this.drawObjColour(gl2, 0.0f, 0.0f, 0.0f);
-	
-	};
-    
 }

@@ -26,38 +26,38 @@ import java.sql.ResultSet;
 
 import com.jogamp.opengl.util.Animator;
 
-public class Cubists {
+public class Boxland {
  
 	public static Connection connection;
     private final GLCanvas canvas;
     private final Frame frame;
     private final Animator animator;
 
-	private static final class terreKeyListener extends KeyAdapter {
+	private static final class boxKeyListener extends KeyAdapter {
  
-        private final Cubists terre;
+        private final Boxland box;
  
-        private terreKeyListener(Cubists terre) {
-            this.terre = terre;
+        private boxKeyListener(Boxland box) {
+            this.box = box;
         }
  
         @Override
         public void keyPressed(KeyEvent e) {
             if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                terre.exit(); }
+            	box.exit(); }
         }
     }
     
-    public static final class terreGLEventListener implements GLEventListener {
+    public static final class boxGLEventListener implements GLEventListener {
     	
-    	private final Cubists terre;
+    	private final Boxland box;
  
         private GLU glu;
 
-		private TerrLoc terrloc = new TerrLoc();
+		private BoxLoc boxLoc = new BoxLoc();
  
-        private terreGLEventListener(Cubists terre) {
-            this.terre = terre;
+        private boxGLEventListener(Boxland box) {
+            this.box = box;
         }
  
         @Override
@@ -66,7 +66,7 @@ public class Cubists {
             gl.glClear(GL.GL_COLOR_BUFFER_BIT);
             gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
             
-            terrloc.display(gl);
+            boxLoc.display(gl);
         }
  
     	@Override    
@@ -80,7 +80,7 @@ public class Cubists {
             gl.glEnable(GL.GL_DEPTH_TEST);
             gl.glDepthFunc(GL.GL_LEQUAL);
             gl.glHint(GL2ES1.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST);
-            ((Component) glDrawable).addKeyListener(new terreKeyListener(terre));
+            ((Component) glDrawable).addKeyListener(new boxKeyListener(box));
 
     	}
  
@@ -231,7 +231,7 @@ public class Cubists {
 		}
     }
     
-    public Cubists() {
+    public Boxland() {
 
     	// set up the database connection
         try {
@@ -242,13 +242,13 @@ public class Cubists {
         openConnection();
         
         // Empty tables and create the dummy 'killed' rows
-        Cubists.runProcSql("BEGIN INIT_TABLES(); END;");
+        Boxland.runProcSql("BEGIN INIT_TABLES(); END;");
     	
     	// kick off OpenGL
         canvas = new GLCanvas();
-        frame = new Frame("Terrerium");
+        frame = new Frame("Boxland");
         animator = new Animator(canvas);
-        canvas.addGLEventListener(new terreGLEventListener(this));
+        canvas.addGLEventListener(new boxGLEventListener(this));
         frame.add(canvas);
         frame.setSize(640, 480);
         frame.setUndecorated(true);
@@ -276,7 +276,7 @@ public class Cubists {
  
             @Override
             public void run() {
-                new Cubists();
+                new Boxland();
             }
         });
     }
