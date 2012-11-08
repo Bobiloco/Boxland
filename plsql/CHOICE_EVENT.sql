@@ -1,4 +1,5 @@
-CREATE OR REPLACE FUNCTION CHOICE_EVENT( mobDBID IN INT,
+create or replace 
+FUNCTION CHOICE_EVENT( mobDBID IN INT,
                                   locX IN INT,
                                   locY IN INT,
                                   locZ IN INT,
@@ -68,7 +69,7 @@ CREATE OR REPLACE FUNCTION CHOICE_EVENT( mobDBID IN INT,
                                              WHEN 5 THEN target5
                                              WHEN 6 THEN target6 END CASE, 
                          locX, locY, locZ, dirX, dirY, dirZ
-                    from dual;f
+                    from dual;
                                           
             END IF;
         end loop;
@@ -101,9 +102,15 @@ CREATE OR REPLACE FUNCTION CHOICE_EVENT( mobDBID IN INT,
    WHERE ROWNUM = 1;
   END IF;
   
+  SELECT choice_target
+    INTO mobTeam
+    FROM event_choice
+   WHERE event_choice_id = choiceID AND
+         choice_facing = facingID;
+  
         -- insert event with choice taken
   INSERT INTO EVENT_HIST ( EVENT_HIST_ID, EVENT_DECISION_ID, EVENT_TYPE, CHOICE_FACING ) 
-      SELECT 0, decisionID, 'Decision', facingID FROM DUAL;
+      SELECT 0, decisionID, mobTeam, facingID FROM DUAL;
 
   RETURN facingID;
   

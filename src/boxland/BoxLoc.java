@@ -7,12 +7,12 @@ public class BoxLoc {
 
 	public static int animateCount = 0;
 	
-	public static final int sizeMultiple = 1;
+	public static final int sizeMultiple = 2;
 	
 	private static final int mobsNumber = 20 * sizeMultiple;
 	private static final int inertsNumber = 10 * sizeMultiple;
 
-	public static final float dimX = sizeMultiple * 12; // 16
+	public static final float dimX = sizeMultiple * 16; // 16
 	public static final float dimY = sizeMultiple * 8;  // 8
 	public static final float dimZ = sizeMultiple * 10; // 10
 		
@@ -80,8 +80,9 @@ public class BoxLoc {
 			int randZ = random.nextInt((int) dimZ);
 		
 			//place it against some edge by min/maxing a random coordinate
-			int rand6 = random.nextInt(6);
-
+			// int rand6 = random.nextInt(6);
+			int rand6 = 1;
+			
 			if ( rand6 == 0 ) randX = 0;
 			if ( rand6 == 1 ) randY = 0;
 			if ( rand6 == 2 ) randZ = 0;
@@ -164,9 +165,9 @@ public class BoxLoc {
         //mob setup stuff 
     	for(int i=0; i<mobsNumber; i++) { 
     		if ( i<mobsNumber/2 ) {
-    			theMobs[i] = new Mob("Red", 1.0f, 0.0f, 0.0f); 
+    			theMobs[i] = new Mob("Black", 0.0f, 0.0f, 0.0f); 
     		} else {
-    			theMobs[i] = new Mob("Blue", 0.0f, 0.0f, 1.0f);
+    			theMobs[i] = new Mob("White", 1.0f, 1.0f, 1.0f);
     		}
     		
     		// Insert the object ID into the database

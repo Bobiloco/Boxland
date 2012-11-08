@@ -25,7 +25,7 @@ public class DrawScene {
                 
                  // Draw A Quad
                  gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-                 gl.glColor3f( (i/BoxLoc.dimX)+pulse, (j/BoxLoc.dimY)+pulse, 0.0f);   // set the color of the quad
+                 gl.glColor3f( (i/(BoxLoc.dimX+1.0f))+pulse, (j/(BoxLoc.dimY+1.0f))+pulse, pulse);   // set the color of the quad
                  gl.glVertex3f(-squareSize/2f, squareSize/2f, -squareSize/2f);   // Top Left
                  gl.glVertex3f( squareSize/2f, squareSize/2f, -squareSize/2f);   // Top Right
                  gl.glVertex3f( squareSize/2f,-squareSize/2f, -squareSize/2f);   // Bottom Right
@@ -48,7 +48,7 @@ public class DrawScene {
                 
                  // Draw A Quad
                  gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-                 gl.glColor3f( (i/BoxLoc.dimX)+pulse, 0.0f, (j/BoxLoc.dimZ)+pulse);   // set the color of the quad
+                 gl.glColor3f( (i/(BoxLoc.dimX+1.0f))+pulse, pulse, (j/(BoxLoc.dimZ+1))+pulse);   // set the color of the quad
                  gl.glVertex3f(-squareSize/2f, -squareSize/2f, squareSize/2f);   // Top Left
                  gl.glVertex3f( squareSize/2f, -squareSize/2f, squareSize/2f);   // Top Right
                  gl.glVertex3f( squareSize/2f, -squareSize/2f,-squareSize/2f);   // Bottom Right
@@ -71,7 +71,7 @@ public class DrawScene {
                 
                  // Draw A Quad
                  gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-                 gl.glColor3f( (i/BoxLoc.dimX)+pulse, 1.0f, (j/BoxLoc.dimZ)+pulse);   // set the color of the quad
+                 gl.glColor3f( (i/(BoxLoc.dimX+1.0f))+pulse, 1.0f, (j/(BoxLoc.dimZ+1.0f))+pulse);   // set the color of the quad
                  gl.glVertex3f(-squareSize/2f, squareSize/2, squareSize/2f);   // Top Left
                  gl.glVertex3f( squareSize/2f, squareSize/2, squareSize/2f);   // Top Right
                  gl.glVertex3f( squareSize/2f, squareSize/2,-squareSize/2f);   // Bottom Right
@@ -94,7 +94,7 @@ public class DrawScene {
                 
                  // Draw A Quad
                  gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-                 gl.glColor3f( 0.0f+pulse, (i/BoxLoc.dimY)+pulse, (j/BoxLoc.dimZ)+pulse );   // set the color of the quad
+                 gl.glColor3f( pulse, (i/(BoxLoc.dimY+1.0f))+pulse, (j/(BoxLoc.dimZ+1.0f))+pulse );   // set the color of the quad
                  gl.glVertex3f( -squareSize/2f, -squareSize/2f, squareSize/2f);   // Top Left
                  gl.glVertex3f( -squareSize/2f, squareSize/2f, squareSize/2f);   // Top Right
                  gl.glVertex3f( -squareSize/2f, squareSize/2f,-squareSize/2f);   // Bottom Right
@@ -117,7 +117,7 @@ public class DrawScene {
                 
                  // Draw A Quad
                  gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-                 gl.glColor3f( 1.0f+pulse, (i/BoxLoc.dimY)+pulse, (j/BoxLoc.dimZ)+pulse );   // set the color of the quad
+                 gl.glColor3f( 1.0f+pulse, (i/(BoxLoc.dimY+1.0f))+pulse, (j/(BoxLoc.dimZ+1.0f))+pulse );   // set the color of the quad
                  gl.glVertex3f( squareSize/2f, -squareSize/2f, squareSize/2f);   // Top Left
                  gl.glVertex3f( squareSize/2f, squareSize/2f, squareSize/2f);   // Top Right
                  gl.glVertex3f( squareSize/2f, squareSize/2f,-squareSize/2f);   // Bottom Right

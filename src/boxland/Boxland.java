@@ -7,6 +7,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2;
 import javax.media.opengl.GL2ES1;
@@ -78,10 +79,12 @@ public class Boxland {
             gl.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
             gl.glClearDepth(1.0f);
             gl.glEnable(GL.GL_DEPTH_TEST);
+        	gl.glEnable(GL.GL_BLEND);
+        	gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
             gl.glDepthFunc(GL.GL_LEQUAL);
             gl.glHint(GL2ES1.GL_PERSPECTIVE_CORRECTION_HINT, GL.GL_NICEST);
             ((Component) glDrawable).addKeyListener(new boxKeyListener(box));
-
+            
     	}
  
         @Override

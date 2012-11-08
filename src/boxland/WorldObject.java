@@ -131,49 +131,54 @@ public class WorldObject {
         float yUp = ( (float) locY/tDimY + green ) / 2;
         float zUp = ( (float) locZ/tDimZ + blue ) / 2;
         
-        // xUp-green-blue, yUp-red-blue, zUp-red-green
-        
-        gl.glBegin(GL2.GL_TRIANGLE_FAN);       
         if ( locY < BoxLoc.dimY/2.0f) {
+        gl.glBegin(GL2.GL_TRIANGLE_FAN);       
         gl.glColor3f( xUp, yUp, zUp );   // set the top color of the quad
+        gl.glNormal3d(0, 1, 0);
         gl.glVertex3f(-squareSize, squareSize, squareSize);   // Top Left
         gl.glVertex3f( squareSize, squareSize, squareSize);   // Top Right
         gl.glVertex3f( squareSize, squareSize,-squareSize);   // Bottom Right
         gl.glVertex3f(-squareSize, squareSize,-squareSize);   // Bottom Left
-        }
         gl.glEnd();
-
-        gl.glBegin(GL2.GL_TRIANGLE_FAN);       
+        }
+        
         if ( locY > BoxLoc.dimY/2.0f) {
+        gl.glBegin(GL2.GL_TRIANGLE_FAN);       
         gl.glColor3f( xUp, yUp, zUp);   // set the bottom colour of the quad
+        gl.glNormal3d(0, -1, 0);        
         gl.glVertex3f(-squareSize, -squareSize, squareSize);   // Top Left
         gl.glVertex3f( squareSize, -squareSize, squareSize);   // Top Right
         gl.glVertex3f( squareSize, -squareSize,-squareSize);   // Bottom Right
         gl.glVertex3f(-squareSize, -squareSize,-squareSize);   // Bottom Left
-        }
         gl.glEnd();
+        }
 
-        gl.glBegin(GL2.GL_TRIANGLE_FAN);       
         if ( locX < BoxLoc.dimX/2) {
+        gl.glBegin(GL2.GL_TRIANGLE_FAN);       
         gl.glColor3f( xUp*1.1f, yUp*1.1f, zUp*1.1f);   // set the right of the quad
+        gl.glNormal3d(1, 0, 0);
         gl.glVertex3f( squareSize, -squareSize, squareSize);   // Top Left
         gl.glVertex3f( squareSize, squareSize, squareSize);   // Top Right
         gl.glVertex3f( squareSize, squareSize,-squareSize);   // Bottom Right
         gl.glVertex3f( squareSize, -squareSize,-squareSize);   // Bottom Left
-        }
         gl.glEnd();
+        }
         
-        gl.glBegin(GL2.GL_TRIANGLE_FAN);       
+       
         if ( locX > BoxLoc.dimX/2) {
+        gl.glBegin(GL2.GL_TRIANGLE_FAN);
         gl.glColor3f( xUp*1.1f, yUp*1.1f, zUp*1.1f);   // set the left of the quad
+        gl.glNormal3d(-1, 0, 0);
         gl.glVertex3f( -squareSize, -squareSize, squareSize);   // Top Left
         gl.glVertex3f( -squareSize, squareSize, squareSize);   // Top Right
         gl.glVertex3f( -squareSize, squareSize,-squareSize);   // Bottom Right
         gl.glVertex3f( -squareSize, -squareSize,-squareSize);   // Bottom Left
-        }
         gl.glEnd();
+        }
+
 
         gl.glBegin(GL2.GL_TRIANGLE_FAN);       
+        gl.glNormal3d(0, 0, 1);
         gl.glColor3f( xUp*0.8f, yUp*0.8f, zUp*0.8f);   // set the color of front of the quad
         gl.glVertex3f(-squareSize, squareSize, squareSize);   // Top Left
         gl.glVertex3f( squareSize, squareSize, squareSize);   // Top Right
@@ -191,13 +196,38 @@ public class WorldObject {
         
         if ( locZ == (int) tDimZ ) {
         	
-        gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-        gl.glColor3f( red/4f, green/4f, blue/4f);         // set the color of front of the quad
-        gl.glVertex3f(-WorldObject.cubeSize/3.0f, WorldObject.cubeSize/3.0f, squareSize);   // Top Left
-        gl.glVertex3f( WorldObject.cubeSize/3.0f, WorldObject.cubeSize/3.0f, squareSize);   // Top Right
-        gl.glVertex3f( WorldObject.cubeSize/3.0f,-WorldObject.cubeSize/3.0f, squareSize);   // Bottom Right
-        gl.glVertex3f(-WorldObject.cubeSize/3.0f,-WorldObject.cubeSize/3.0f, squareSize);   // Bottom Left
-        gl.glEnd();
+        	gl.glLoadIdentity();
+
+        	float calcX = 0;
+        	float calcY = 0;
+        	float calcZ = 0;
+        	
+        	if ( offsetX > 4 ) calcX = BoxLoc.startX + (float) locX + 1.0f;
+        	if ( offsetX <= 4 && offsetX >= -4) calcX = BoxLoc.startX + (float) locX;
+        	if ( offsetX < -4 ) calcX = BoxLoc.startX + (float) locX - 1.0f;
+        	
+        	if ( offsetY > 4 ) calcY = BoxLoc.startY + (float) locY + 1.0f;
+        	if ( offsetY <= 4 && offsetY >= -4) calcY = BoxLoc.startY + (float) locY;
+        	if ( offsetY < -4 ) calcY = BoxLoc.startY + (float) locY - 1.0f;
+
+        	calcZ = BoxLoc.startZ + (float) locZ;
+
+        	gl.glTranslatef( calcX, calcY, calcZ );
+        	
+	        float drawSize = 0.5f;
+        	
+	        gl.glBegin(GL2.GL_TRIANGLE_FAN);       
+        	gl.glColor4f( (float) locX/tDimX, (float) locY/tDimY, 1.0f, 0.3f);         // set the color of front of the quad
+	        gl.glVertex3f(-drawSize, drawSize, squareSize);   // Top Left
+	        gl.glVertex3f( drawSize, drawSize, squareSize);   // Top Right
+	        gl.glVertex3f( drawSize,-drawSize, squareSize);   // Bottom Right
+	        gl.glVertex3f(-drawSize,-drawSize, squareSize);   // Bottom Left
+	        /*	        gl.glVertex3f(-WorldObject.cubeSize/3.0f, WorldObject.cubeSize/3.0f, squareSize);   // Top Left
+	        gl.glVertex3f( WorldObject.cubeSize/3.0f, WorldObject.cubeSize/3.0f, squareSize);   // Top Right
+	        gl.glVertex3f( WorldObject.cubeSize/3.0f,-WorldObject.cubeSize/3.0f, squareSize);   // Bottom Right
+	        gl.glVertex3f(-WorldObject.cubeSize/3.0f,-WorldObject.cubeSize/3.0f, squareSize);   // Bottom Left
+	        */
+	        gl.glEnd();
         
         }
 	}
