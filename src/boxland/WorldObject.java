@@ -9,10 +9,8 @@ public class WorldObject {
     public float drawSize;
     public float growSize = cubeSize / 10.0f;
     public float growCount = -10;
-    public int explodeSize = 10;
+    public final int explodeSize = BoxLoc.teamSize * BoxLoc.teamsNumber;
     public int explodeCount = 0;
-
-    
     public String wobId = "Wob";
     public int wobDBID = -1;
     
@@ -28,6 +26,9 @@ public class WorldObject {
     public float colourR = 0.0f;
     public float colourG = 0.0f;
     public float colourB = 0.0f;
+    
+    public WorldObject(){
+    }
     
     public WorldObject( String wID, float r, float g, float b) {
     	wobId = wID;
@@ -86,30 +87,32 @@ public class WorldObject {
 	
 	public void animate() {
 		
+		float offsetStep = ( 10.0f / ( (float) BoxLoc.teamSize * (float) BoxLoc.teamsNumber) );
+		
 		// The sizeMultiple is to track animation frames and scale movement accordingly
-		if ( Math.round(offsetX) > 0 ) offsetX = offsetX - ( 1.0f / ( (float) BoxLoc.sizeMultiple * 2.0f ) );
-		if ( Math.round(offsetX) < 0 ) offsetX = offsetX + ( 1.0f / ( (float) BoxLoc.sizeMultiple * 2.0f ) );
-		if ( Math.round(offsetY) > 0 ) offsetY = offsetY - ( 1.0f / ( (float) BoxLoc.sizeMultiple * 2.0f ) );
-		if ( Math.round(offsetY) < 0 ) offsetY = offsetY + ( 1.0f / ( (float) BoxLoc.sizeMultiple * 2.0f ) );
-		if ( Math.round(offsetZ) > 0 ) offsetZ = offsetZ - ( 1.0f / ( (float) BoxLoc.sizeMultiple * 2.0f ) );
-		if ( Math.round(offsetZ) < 0 ) offsetZ = offsetZ + ( 1.0f / ( (float) BoxLoc.sizeMultiple * 2.0f ) );
+		if ( Math.round(offsetX) > 0 ) offsetX = offsetX - offsetStep;
+		if ( Math.round(offsetX) < 0 ) offsetX = offsetX + offsetStep;
+		if ( Math.round(offsetY) > 0 ) offsetY = offsetY - offsetStep;
+		if ( Math.round(offsetY) < 0 ) offsetY = offsetY + offsetStep;
+		if ( Math.round(offsetZ) > 0 ) offsetZ = offsetZ - offsetStep;
+		if ( Math.round(offsetZ) < 0 ) offsetZ = offsetZ + offsetStep;
 
-		if ( Math.round(growCount) < 0 ) growCount = growCount + 0.1f / ( (float) BoxLoc.sizeMultiple * 2.0f );
+		if ( Math.round(growCount) < 0 ) growCount = growCount + offsetStep / 10.0f;
 
-    	if ( explodeCount > 0 ) {
-			explodeCount++;
-			if ( explodeCount > explodeSize ) explodeCount = 0;
-		}
+    	if ( explodeCount > 0 ) explodeCount++;
+		if ( explodeCount > explodeSize ) explodeCount = 0;
+		
+		drawSize = cubeSize + ( growCount * growSize ) + ( 10.0f * explodeCount * growSize ) / explodeSize;
 	}
 	
-	public void drawActions() {
-		animate();
-		drawSize = cubeSize + ( growCount * growSize ) + explodeCount * growSize ;
-    }
+	public void drawAction() {};
 	
 	public void drawObj (GL2 gl2) {
-		drawActions();
-		drawObjColour ( gl2, colourR, colourG, colourB);
+		
+		animate();
+		drawAction();
+		drawObjColour(gl2, colourR, colourG, colourB);
+
 	}
 	
 	public void drawObjColour (GL2 gl2, float red, float green, float blue) {
@@ -120,20 +123,20 @@ public class WorldObject {
 		
 		gl.glLoadIdentity();
         gl.glTranslatef( offsetX*0.1f + BoxLoc.startX + (float) locX, 
-        		         offsetY*0.1f + BoxLoc.startY + (float) locY, 
+        		         offsetY*0.1f + BoxLoc.startY + (float) locY + Boxland.sizeAdjustY, 
         		         offsetZ*0.1f + BoxLoc.startZ + (float) locZ );
 
-        float tDimX = BoxLoc.dimX-1.0f;
-        float tDimY = BoxLoc.dimY-1.0f;
-        float tDimZ = BoxLoc.dimZ-1.0f;
+        float tDimX = BoxLoc.dimX - 1.0f;
+        float tDimY = BoxLoc.dimY - 1.0f;
+        float tDimZ = BoxLoc.dimZ - 1.0f;
         
-        float xUp = ( (float) locX/tDimX + red ) / 2;
-        float yUp = ( (float) locY/tDimY + green ) / 2;
-        float zUp = ( (float) locZ/tDimZ + blue ) / 2;
+        float xUp = (((float)locX/tDimX) + red)/2;
+        float yUp = (((float)locY/tDimY) + green)/2;
+        float zUp = (((float)locZ/tDimZ) + blue)/2;
         
         if ( locY < BoxLoc.dimY/2.0f) {
         gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-        gl.glColor3f( xUp, yUp, zUp );   // set the top color of the quad
+        gl.glColor3f( xUp*1.1f, yUp*1.1f, zUp*1.1f );   // set the top color of the quad
         gl.glNormal3d(0, 1, 0);
         gl.glVertex3f(-squareSize, squareSize, squareSize);   // Top Left
         gl.glVertex3f( squareSize, squareSize, squareSize);   // Top Right
@@ -144,7 +147,7 @@ public class WorldObject {
         
         if ( locY > BoxLoc.dimY/2.0f) {
         gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-        gl.glColor3f( xUp, yUp, zUp);   // set the bottom colour of the quad
+        gl.glColor3f( xUp*1.1f, yUp*1.1f, zUp*1.1f);   // set the bottom colour of the quad
         gl.glNormal3d(0, -1, 0);        
         gl.glVertex3f(-squareSize, -squareSize, squareSize);   // Top Left
         gl.glVertex3f( squareSize, -squareSize, squareSize);   // Top Right
@@ -155,7 +158,7 @@ public class WorldObject {
 
         if ( locX < BoxLoc.dimX/2) {
         gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-        gl.glColor3f( xUp*1.1f, yUp*1.1f, zUp*1.1f);   // set the right of the quad
+        gl.glColor3f( xUp, yUp, zUp);   // set the right of the quad
         gl.glNormal3d(1, 0, 0);
         gl.glVertex3f( squareSize, -squareSize, squareSize);   // Top Left
         gl.glVertex3f( squareSize, squareSize, squareSize);   // Top Right
@@ -167,7 +170,7 @@ public class WorldObject {
        
         if ( locX > BoxLoc.dimX/2) {
         gl.glBegin(GL2.GL_TRIANGLE_FAN);
-        gl.glColor3f( xUp*1.1f, yUp*1.1f, zUp*1.1f);   // set the left of the quad
+        gl.glColor3f( xUp, yUp, zUp);   // set the left of the quad
         gl.glNormal3d(-1, 0, 0);
         gl.glVertex3f( -squareSize, -squareSize, squareSize);   // Top Left
         gl.glVertex3f( -squareSize, squareSize, squareSize);   // Top Right
@@ -212,7 +215,7 @@ public class WorldObject {
 
         	calcZ = BoxLoc.startZ + (float) locZ;
 
-        	gl.glTranslatef( calcX, calcY, calcZ );
+        	gl.glTranslatef( calcX, calcY + Boxland.sizeAdjustY, calcZ );
         	
 	        float drawSize = 0.5f;
         	

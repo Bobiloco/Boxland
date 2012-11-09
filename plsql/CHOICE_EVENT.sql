@@ -74,28 +74,30 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
             END IF;
         end loop;
   END IF;
-      
-        -- insert new decision
-  INSERT INTO event_decision ( event_decision_id, obj_id, event_choice_id ) 
-      SELECT 0, mobDBID, choiceID FROM DUAL;
-  
-  SELECT MAX(event_decision_id)
-    INTO decisionID
-    FROM event_decision;
-  
-   SELECT obj_team
-     INTO mobTeam
-     FROM obj
-    WHERE obj_id = mobDBID;
 
-  facingID := get_best_choice(mobTeam,choiceID);
+  -- See if that mob has made a similar decision
+  decisionID := return_decision_match(mobDBID, choiceID);       
+
+  IF decisionID IS NULL
+    THEN
+      -- insert new decision
+      INSERT INTO event_decision ( event_decision_id, obj_id, event_choice_id ) 
+          SELECT 0, mobDBID, choiceID FROM DUAL;
+      
+      SELECT MAX(event_decision_id)
+        INTO decisionID
+        FROM event_decision;
+
+   END IF;
+  
+  facingID := get_best_facing(mobDBID,choiceID);
   
   -- If no move is preferred randomize
   IF facingID is null 
   THEN 
    SELECT choice_facing
    INTO facingID
-   FROM ( SELECT choice_facing, dbms_random.value() 
+   FROM ( SELECT choice_facing, dbms_random.value() rand
             FROM event_choice
            WHERE event_choice_id = choiceID
            ORDER by 2 )

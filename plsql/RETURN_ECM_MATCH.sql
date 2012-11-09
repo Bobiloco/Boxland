@@ -7,7 +7,7 @@ FUNCTION RETURN_ECM_MATCH ( target0 IN VARCHAR,
                                   target5 IN VARCHAR,
                                   target6 IN VARCHAR )
   RETURN INT 
-AS f
+AS 
 
 choiceID INT;
 

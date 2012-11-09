@@ -15,7 +15,7 @@ BEGIN
      AND eh.event_type = 'Killed';
   
   return lastKilledId;
-  f
+  
   exception
 
   WHEN NO_DATA_FOUND

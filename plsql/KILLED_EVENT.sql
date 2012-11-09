@@ -13,15 +13,22 @@ PROCEDURE KILLED_EVENT( mobDBID IN INT )
    -- get the 'empty' choice
   choiceID := return_ecm_match (' ',' ',' ',' ',' ',' ',' ');
 
-  INSERT INTO EVENT_DECISION ( EVENT_DECISION_ID, OBJ_ID, EVENT_CHOICE_ID ) 
-    SELECT 0, 
-           mobDBID, 
-           choiceID
-      FROM DUAL;
-    
-  SELECT max(EVENT_DECISION_ID) 
-    INTO decisionID
-    FROM EVENT_DECISION;
+  decisionID := return_decision_match ( mobDBID, choiceID );
+  
+  IF decisionID is null 
+  THEN
+
+    INSERT INTO EVENT_DECISION ( EVENT_DECISION_ID, OBJ_ID, EVENT_CHOICE_ID ) 
+      SELECT 0, 
+             mobDBID, 
+             choiceID
+        FROM DUAL;
+      
+    SELECT max(EVENT_DECISION_ID) 
+      INTO decisionID
+      FROM EVENT_DECISION;
+
+  END IF;
 
   -- grab the last start, potientially a 'Killed', before recording the current event
   lastStartID := return_last_start( mobDBID );
@@ -57,9 +64,9 @@ PROCEDURE KILLED_EVENT( mobDBID IN INT )
         SELECT eh.event_hist_id
           FROM event_hist eh
           JOIN event_decision ed ON eh.event_decision_id = ed.event_decision_id
-         WHERE ed.obj_id = mobDBID
+                                AND ed.obj_id = mobDBID
          ORDER BY 1 DESC
         ) eh
      WHERE ROWNUM < chainCount;
-
+     
 END KILLED_EVENT;

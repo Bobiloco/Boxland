@@ -4,11 +4,20 @@ public class Mob extends WorldObject {
 
 	public int experience = 0;
     public int fedCount = 50;
+    int mobCD = 0;
 
     public Mob( String x, float r, float g, float b) {
     	super(x, r, g, b);
     }
-
+    
+    public Mob( String wID, float r, float g, float b, int i) {
+        	wobId = wID;
+        	colourR = r;
+        	colourG = g;
+        	colourB = b;
+        	mobCD = i;
+    }
+    
     public void updateMob() {
 		
     	String[] faceToken;
@@ -103,16 +112,17 @@ public class Mob extends WorldObject {
 			if ( explodeCount == 0 ) explodeCount = 1;
     		if ( experience < 10 ) experience++;
         	fedCount = fedCount + 50;
-        	
         	woEaten.killed();	
 		}
 	}
 	
-    public void drawActions() {
+    public void drawAction() {
 
-		animate();
-   	    // This line adds experience to the draw size
-		drawSize = cubeSize + ( growCount + experience ) * growSize + explodeCount * growSize ;
-
+    	// This line adds experience to the draw size
+		drawSize = drawSize + experience*0.05f;
     }
+
+	public int getMobCD() {
+		return mobCD;
+	}
 }

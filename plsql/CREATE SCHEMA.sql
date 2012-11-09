@@ -138,3 +138,4 @@ comment on table EVENT_SCORING is '';
 comment on table EVENT_CHOICE_NODE is '';
 comment on table OBJ is '';
 */
+f
