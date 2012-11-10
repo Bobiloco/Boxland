@@ -1,5 +1,5 @@
 create or replace 
-FUNCTION GET_BEST_FACING( mobDBID IN INT, choiceID IN INT ) 
+FUNCTION GET_BEST_FACING( mobDBID IN INT, choiceID IN INT, locID IN INT ) 
 RETURN INT 
 AS 
 
@@ -25,51 +25,95 @@ SELECT choice_facing
   FROM (
     
   -- returning the final scores for all the facings
-  SELECT choice_facing, score FROM (
+  SELECT choice_facing, score 
+    FROM (
   
     -- contains the formula for weighing the join scores
     select ec.choice_facing, 
+           --NVL(choiceScoring.score,0) Choice, 
+           --NVL(stateScoring.score,0) State,
+           --NVL(statePctScoring.score,0) StatePct,
            CASE objCD 
              WHEN 0 THEN dbms_random.value()
-             WHEN 1 THEN NVL(targetScoring.score,0)
-             WHEN 2 THEN NVL(stateScoring.score,0)
-             WHEN 3 THEN NVL(targetScoring.score,0) + NVL(stateScoring.score,0)
+             WHEN 1 THEN NVL(eventType.score,0)
+             WHEN 2 THEN NVL(choiceFacing.score,0)
+             WHEN 3 THEN NVL(eventLoc.score,0)
+             WHEN 4 THEN ( 5 * NVL(eventType.score,0)) + NVL(choiceFacing.score,0)
+             WHEN 5 THEN ( 5 * NVL(eventType.score,0)) + NVL(choiceFacing.score,0) + NVL(eventLoc.score,0)
            END score
       from event_choice ec
-      left join ( -- By choice, what facing has bad memories and how many
-                  select o.obj_team, ed.event_choice_id, eh.choice_facing, count(*) score
-                    from event_hist eh
-                    join event_scoring es on eh.event_hist_id = es.event_hist_id
-                    join event_decision ed on eh.event_decision_id = ed.event_decision_id
-                    join obj o on ed.obj_id = o.obj_id and o.obj_team = objTeam
-                   WHERE ed.event_choice_id = choiceID
-                   group by o.obj_team, ed.event_choice_id, eh.choice_facing ) stateScoring
-        on ec.event_choice_id = stateScoring.event_choice_id and
-           ec.choice_facing   = stateScoring.choice_facing
-      left join ( -- By team, the percentage of the time they do/see an action that has turned out badly
-                 select score1.obj_team, score1.event_type, (score1.score / score2.score) score
-                   from ( -- how many times they chose the action
-                          select eh.event_type, o.obj_team, count(*) score
-                            from event_hist eh
-                            join event_scoring es on eh.event_hist_id = es.event_hist_id
-                            join event_decision ed on eh.event_decision_id = ed.event_decision_id
-                            join obj o on ed.obj_id = o.obj_id and o.obj_team = objTeam
-                           group by event_type, obj_team 
-                         ) score1
-                   join ( -- How many times they scored the action, across the team
-                          select ec.choice_target event_type, o.obj_team obj_team, count(*) score
-                            from event_hist eh
-                            join event_scoring es on eh.event_hist_id = es.event_hist_id
-                            join event_decision ed on eh.event_decision_id = ed.event_decision_id
-                            join obj o on ed.obj_id = o.obj_id and o.obj_team = objTeam
-                            join event_choice ec on ed.event_choice_id = ec.event_choice_id
-                           group by ec.choice_target, o.obj_team 
-                         ) score2
-                     ON score1.event_type = score2.event_type 
-                    AND score1.obj_team   = score2.obj_team ) targetScoring
-        on ec.choice_target = targetScoring.event_type
-     where ec.event_choice_id = choiceID
-    
+      left join ( -- BY CHOICE - FACING
+                  -- By choice (node), what facing has bad memories by percentages
+                  select score1.choice_facing, score1.score/score2.score score
+                    from ( -- Individual choice counts
+                           select o.obj_team, ed.event_choice_id, eh.choice_facing, count(*) score
+                             from event_hist eh
+                             join event_scoring es on eh.event_hist_id = es.event_hist_id
+                             join event_decision ed on eh.event_decision_id = ed.event_decision_id
+                                                   AND ed.event_choice_id = choiceID
+                             join obj o on ed.obj_id = o.obj_id 
+                                       and o.obj_team = objTeam
+                            group by o.obj_team, ed.event_choice_id, eh.choice_facing ) score1
+                    JOIN ( -- How many times chosen
+                           select o.obj_team, ed.event_choice_id, eh.choice_facing, count(*) score
+                             from event_hist eh
+                             join event_decision ed on eh.event_decision_id = ed.event_decision_id
+                                                   AND ed.event_choice_id = choiceID
+                             join obj o on ed.obj_id = o.obj_id 
+                                       and o.obj_team = objTeam
+                            group by o.obj_team, ed.event_choice_id, eh.choice_facing ) score2
+                     ON score1.choice_facing = score2.choice_facing ) choiceFacing
+        on ec.choice_facing   = choiceFacing.choice_facing
+      left join ( -- BY EVENT - TYPE
+                  -- The percentage of the time a team do... /see an action that has turned out badly
+                select score1.event_type, (score1.score / score2.score) score
+                    from ( -- How many times they scored the action as bad, across the team
+                           select eh.event_type, count(*) score
+                             from event_hist eh
+                             join event_scoring es on eh.event_hist_id = es.event_hist_id
+                             join event_decision ed on eh.event_decision_id = ed.event_decision_id
+                             join obj o on ed.obj_id = o.obj_id 
+                                       and o.obj_team = objTeam
+                            group by eh.event_type ) score1
+                     join ( -- how many times they chose the action
+                            select eh.event_type, count(*) score
+                              from event_hist eh
+                              join event_decision ed on eh.event_decision_id = ed.event_decision_id
+                              join obj o on ed.obj_id = o.obj_id 
+                                        and o.obj_team = objTeam
+                             group by event_type ) score2
+                     ON score1.event_type = score2.event_type ) eventType
+        ON ec.choice_target = eventType.event_type
+      left join ( -- By EVENT - LOC
+                  -- For this locID, how badly did chosing a given facing turn out, by facing
+                  --   By percentage: ( scored / chosen )
+                  SELECT score1.choice_facing, (score1.score / score2.score) score
+                    FROM ( -- How many times they regretted a direction
+                           select el.event_loc_id, eh.choice_facing,  count(*) score
+                             from event_loc el
+                             join event_decision ed on el.event_loc_id = ed.event_loc_id
+                             join obj o on ed.obj_id = o.obj_id 
+                                       and o.obj_team = objTeam
+                             join event_hist eh on ed.event_decision_id = eh.event_decision_id
+                             join event_scoring es on eh.event_hist_id = es.event_hist_id
+                            where el.event_loc_id = locID
+                            group by el.event_loc_id, eh.choice_facing
+                          ) score1
+                    JOIN ( -- how many times they went that way
+                           select el.event_loc_id, eh.choice_facing,  count(*) score
+                             from event_loc el
+                             join event_decision ed on el.event_loc_id = ed.event_loc_id
+                             join obj o on ed.obj_id = o.obj_id 
+                                       and o.obj_team = objTeam
+                             join event_hist eh on ed.event_decision_id = eh.event_decision_id
+                            where el.event_loc_id = locID                             
+                            group by el.event_loc_id, eh.choice_facing
+                          ) score2
+                      ON score1.event_loc_id = score2.event_loc_id
+                     AND score1.choice_facing   = score2.choice_facing ) eventLoc
+         on ec.choice_facing = eventLoc.choice_facing
+      where ec.event_choice_id = choiceID
+     
   ) ORDER BY 2, dbms_random.value()
 
 ) WHERE ROWNUM = 1;

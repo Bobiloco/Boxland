@@ -1,9 +1,10 @@
 create or replace 
-PROCEDURE KILLED_EVENT( mobDBID IN INT ) 
+PROCEDURE KILLED_EVENT( mobDBID IN INT, locX IN INT, locY in INT, locZ IN INT ) 
   AS 
 
   eventID INT;
   decisionID INT;
+  locID INT;
   choiceID INT;
   lastStartID INT;
   chainCount INT;
@@ -13,15 +14,30 @@ PROCEDURE KILLED_EVENT( mobDBID IN INT )
    -- get the 'empty' choice
   choiceID := return_ecm_match (' ',' ',' ',' ',' ',' ',' ');
 
-  decisionID := return_decision_match ( mobDBID, choiceID );
+  locID := return_loc_match(locX, locY, LocZ);
+  
+  IF locID is null
+  THEN
+  
+    INSERT INTO EVENT_LOC ( EVENT_LOC_ID, LOC_X, LOC_Y, LOC_Z )
+      SELECT 0, locX, locY, locZ FROM DUAL;
+    
+    SELECT MAX(event_loc_id) 
+      INTO locID
+      FROM EVENT_LOC;
+  
+  END IF;
+  
+  decisionID := return_decision_match ( mobDBID, choiceID, locID );
   
   IF decisionID is null 
   THEN
 
-    INSERT INTO EVENT_DECISION ( EVENT_DECISION_ID, OBJ_ID, EVENT_CHOICE_ID ) 
+    INSERT INTO EVENT_DECISION ( EVENT_DECISION_ID, OBJ_ID, EVENT_CHOICE_ID, EVENT_LOC_ID ) 
       SELECT 0, 
              mobDBID, 
-             choiceID
+             choiceID,
+             locID
         FROM DUAL;
       
     SELECT max(EVENT_DECISION_ID) 

@@ -14,14 +14,11 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
   AS 
 
   decisionID INT;
+  locID INT;
   choiceID INT;
   facingID INT;
   mobTeam VARCHAR2(10);
   
-  dirX INT;
-  dirY INT;
-  dirZ INT;
-
   BEGIN
 
   choiceID := return_ecm_match(target0, target1, target2, target3, target4, target5, target6 );
@@ -38,6 +35,7 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
           FROM event_choice_node;
 
         -- Create all the applicable rows in EVENT_CHOICE
+        -- This is ugly now that I've pulled the xyz... still works, though
         for i in 0..6 loop
             
             IF ( i=0 and target0 IS NOT NULL ) OR
@@ -48,50 +46,37 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
                ( i=5 and target5 IS NOT NULL ) OR
                ( i=6 and target6 IS NOT NULL ) THEN 
             
-                select locX into dirX from dual;
-                select locY into dirY from dual;
-                select locZ into dirZ from dual;
-                
-                -- Minus first!
-                IF i = 1 THEN select dirX - 1 into dirX from dual; END IF;
-                IF i = 2 THEN select dirX + 1 into dirX from dual; END IF;
-                IF i = 3 THEN select dirY - 1 into dirY from dual; END IF;
-                IF i = 4 THEN select dirY + 1 into dirY from dual; END IF;
-                IF i = 5 THEN select dirZ - 1 into dirZ from dual; END IF;
-                IF i = 6 THEN select dirZ + 1 into dirZ from dual; END IF;
-                
-                insert into event_choice ( EVENT_CHOICE_ID, CHOICE_FACING, CHOICE_TARGET, CHOICE_ORIG_X, CHOICE_ORIG_Y, CHOICE_ORIG_Z, CHOICE_DIR_X, CHOICE_DIR_Y, CHOICE_DIR_Z )
+                insert into event_choice ( EVENT_CHOICE_ID, CHOICE_FACING, CHOICE_TARGET )
                   select choiceID, i, CASE i WHEN 0 THEN target0
                                              WHEN 1 THEN target1
                                              WHEN 2 THEN target2
                                              WHEN 3 THEN target3
                                              WHEN 4 THEN target4
                                              WHEN 5 THEN target5
-                                             WHEN 6 THEN target6 END CASE, 
-                         locX, locY, locZ, dirX, dirY, dirZ
+                                             WHEN 6 THEN target6 
+                                         END CASE
                     from dual;
                                           
             END IF;
         end loop;
   END IF;
 
-  -- See if that mob has made a similar decision
-  decisionID := return_decision_match(mobDBID, choiceID);       
-
-  IF decisionID IS NULL
-    THEN
-      -- insert new decision
-      INSERT INTO event_decision ( event_decision_id, obj_id, event_choice_id ) 
-          SELECT 0, mobDBID, choiceID FROM DUAL;
-      
-      SELECT MAX(event_decision_id)
-        INTO decisionID
-        FROM event_decision;
-
-   END IF;
+  -- Set location
+  locID := return_loc_match(locX, locY, LocZ);
+  IF locID is null
+  THEN
   
-  facingID := get_best_facing(mobDBID,choiceID);
+    INSERT INTO EVENT_LOC ( EVENT_LOC_ID, LOC_X, LOC_Y, LOC_Z )
+      SELECT 0, locX, locY, locZ FROM DUAL;
+    
+    SELECT MAX(event_loc_id) 
+      INTO locID
+      FROM EVENT_LOC;
   
+  END IF;
+  
+  -- Set facing
+  facingID := get_best_facing(mobDBID, choiceID, locID);
   -- If no move is preferred randomize
   IF facingID is null 
   THEN 
@@ -104,12 +89,27 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
    WHERE ROWNUM = 1;
   END IF;
   
+  -- Set target ( reusing mobTeam )
   SELECT choice_target
     INTO mobTeam
     FROM event_choice
    WHERE event_choice_id = choiceID AND
          choice_facing = facingID;
   
+  -- See if that mob has made a similar decision
+  decisionID := return_decision_match(mobDBID, choiceID, locID);       
+  IF decisionID IS NULL
+    THEN
+      -- insert new decision
+      INSERT INTO event_decision ( event_decision_id, obj_id, event_choice_id, event_loc_id ) 
+          SELECT 0, mobDBID, choiceID, locID FROM DUAL;
+      
+      SELECT MAX(event_decision_id)
+        INTO decisionID
+        FROM event_decision;
+
+   END IF;
+
         -- insert event with choice taken
   INSERT INTO EVENT_HIST ( EVENT_HIST_ID, EVENT_DECISION_ID, EVENT_TYPE, CHOICE_FACING ) 
       SELECT 0, decisionID, mobTeam, facingID FROM DUAL;

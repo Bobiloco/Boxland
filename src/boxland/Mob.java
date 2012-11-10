@@ -94,7 +94,7 @@ public class Mob extends WorldObject {
     	fedCount = 50;
     	
     	// Removes the mob from the grid and record it in the database as 'Killed' xyz
-    	Boxland.runKilledEvent("{ call killed_event( ? )}", wobDBID );
+    	Boxland.runKilledEvent("{ call killed_event( ?,?,?,? )}", wobDBID, this.locX, this.locY, this.locZ );
 		
     	// Remove it from the grid
     	BoxLoc.removeObj(this);
@@ -111,7 +111,7 @@ public class Mob extends WorldObject {
 			// This is new from superclass, mob animation stuff
 			if ( explodeCount == 0 ) explodeCount = 1;
     		if ( experience < 10 ) experience++;
-        	fedCount = fedCount + 50;
+        	fedCount = 50;
         	woEaten.killed();	
 		}
 	}
