@@ -13,6 +13,7 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
   RETURN INT
   AS 
 
+  eventID INT;
   decisionID INT;
   locID INT;
   choiceID INT;
@@ -110,9 +111,33 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
 
    END IF;
 
-        -- insert event with choice taken
+  -- insert event with choice taken
   INSERT INTO EVENT_HIST ( EVENT_HIST_ID, EVENT_DECISION_ID, EVENT_TYPE, CHOICE_FACING ) 
       SELECT 0, decisionID, mobTeam, facingID FROM DUAL;
+
+  SELECT MAX(event_hist_id)
+    INTO eventID
+    FROM event_hist;
+  
+  INSERT INTO EVENT_HIST_NEW ( obj_id, event_hist_id )
+    SELECT mobDBID, eventID FROM DUAL;
+
+  -- Try to keep the list trim
+  SELECT COUNT(*) 
+    INTO eventID
+    FROM EVENT_HIST_NEW
+   WHERE obj_id = mobDBID;
+   
+  IF eventID > 50 THEN
+    
+    SELECT MIN(EVENT_HIST_ID)
+      INTO eventID
+      FROM event_hist_new
+     WHERE obj_id = mobDBID;
+     
+    DELETE FROM event_hist_new WHERE event_hist_id = eventID;
+
+  END IF;
 
   RETURN facingID;
   

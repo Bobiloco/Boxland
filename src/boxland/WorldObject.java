@@ -23,18 +23,22 @@ public class WorldObject {
     public float offsetY = 0.0f;
     public float offsetZ = 0.0f;
     
-    public float colourR = 0.0f;
-    public float colourG = 0.0f;
-    public float colourB = 0.0f;
+    public float baseR = 0.0f;
+    public float baseG = 0.0f;
+    public float baseB = 0.0f;
     
+    public float shiftR = 0.0f;
+    public float shiftG = 0.0f;
+    public float shiftB = 0.0f;
+   
     public WorldObject(){
     }
     
     public WorldObject( String wID, float r, float g, float b) {
     	wobId = wID;
-    	colourR = r;
-    	colourG = g;
-    	colourB = b;
+    	baseR = r;
+    	baseG = g;
+    	baseB = b;
     }
     
     public void updateXYZ(int x, int y, int z) {
@@ -64,10 +68,11 @@ public class WorldObject {
     
 	public void eat(WorldObject woEaten) {
 		// Nothing will eat its own type
-		if (woEaten.getWobID() != this.getWobID() ) woEaten.killed();
+		if (woEaten.getWobID() != this.getWobID() ) woEaten.died("Killed");
 	}
 
-	public void killed() {
+	public void died(String way) {
+
 		growCount = -10;
 		BoxLoc.removeObj(this);
 		BoxLoc.insertObj(this);
@@ -111,7 +116,7 @@ public class WorldObject {
 		
 		animate();
 		drawAction();
-		drawObjColour(gl2, colourR, colourG, colourB);
+		drawObjColour(gl2, (baseR + shiftR) , (baseG + shiftG), (baseB + shiftB));
 
 	}
 	
@@ -134,7 +139,7 @@ public class WorldObject {
         float yUp = (((float)locY/tDimY) + green)/2;
         float zUp = (((float)locZ/tDimZ) + blue)/2;
         
-        if ( locY < BoxLoc.dimY/2.0f) {
+        if ( locY < (BoxLoc.dimY - Boxland.sizeAdjustY/10f ) /2.0f) {
         gl.glBegin(GL2.GL_TRIANGLE_FAN);       
         gl.glColor3f( xUp*1.1f, yUp*1.1f, zUp*1.1f );   // set the top color of the quad
         gl.glNormal3d(0, 1, 0);
@@ -145,7 +150,7 @@ public class WorldObject {
         gl.glEnd();
         }
         
-        if ( locY > BoxLoc.dimY/2.0f) {
+        if ( locY > (BoxLoc.dimY - Boxland.sizeAdjustY/10f ) /2.0f) {
         gl.glBegin(GL2.GL_TRIANGLE_FAN);       
         gl.glColor3f( xUp*1.1f, yUp*1.1f, zUp*1.1f);   // set the bottom colour of the quad
         gl.glNormal3d(0, -1, 0);        

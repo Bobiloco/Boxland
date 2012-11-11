@@ -7,13 +7,17 @@ import com.jogamp.opengl.util.gl2.GLUT;
 
 public class BoxLoc {
 
+	//public static final String gameMode = "FindFood";
+	//public static final String gameMode = "Survival";
+	public static final String gameMode = "RedBlue";
+	
 	// config variables
-	public static final int teamsNumber = 4;
+	public static final int teamsNumber = 2;
 	public static final int teamSize = 10;
-	private static final int inertsNumber = 40;
-	public static final float dimX = 20; 
-	public static final float dimY = 10; 
-	public static final float dimZ = 10; 
+	private static final int inertsNumber = 50;
+	public static final float dimX = 10; 
+	public static final float dimY = 6; 
+	public static final float dimZ = 8; 
 	public static final float startX = -dimX/2.0f;
 	public static final float startY = ( -dimY/2.0f );
 	public static final float startZ = -dimZ-(dimX+dimY)/2.0f;
@@ -25,7 +29,9 @@ public class BoxLoc {
 	
 	// Memory container arrays
 	private static float teamExpScore[] = new float[teamsNumber];
-	private static float teamFedScore[] = new float[teamsNumber];
+	private float expScore[] = new float[teamsNumber];
+	private int fedScore[] = new int[teamsNumber];
+	private int deathScore[] = new int[teamsNumber];
 	private static WorldObject[][][] wobjects;
 	private static Mob theMobs[] = new Mob[teamsNumber * teamSize];
 	private static WorldObject theInerts[] = new WorldObject[inertsNumber];
@@ -81,7 +87,14 @@ public class BoxLoc {
 		
 			//place it against some edge by min/maxing a random coordinate
 			int rand6 = random.nextInt(6);
-			//if ( wo.getWobID().equals("Inert") ) rand6 = 1;
+			
+			if ( gameMode.equals("FindFood"))
+				if ( wo.getWobID().equals("Inert") ) rand6 = 1; else { rand6 = 4; };
+			
+			if ( gameMode.equals("RedBlue")) {
+				if ( wo.getWobID().equals("Red") ) rand6 = 0;
+				if ( wo.getWobID().equals("Blue") ) rand6 = 3;
+			}
 		
 			if ( rand6 == 0 ) randX = 0;
 			if ( rand6 == 1 ) randY = 0;
@@ -103,8 +116,7 @@ public class BoxLoc {
 	public static void removeObj(WorldObject wo) {
 		wobjects[wo.gX()][wo.gY()][wo.gZ()] = null;
 	}
-	
-	
+		
 	public static boolean moveObj(WorldObject wo, int x, int y, int z ) {
 
 		// inbounds
@@ -132,11 +144,33 @@ public class BoxLoc {
 	
 	public void display(GL2 gl) {
 		
-		// Sets the animation frames to the number of mobs
+		// Sets the animation frames to the number of mobs and updates screen variables
 		if ( animateCount == teamSize * teamsNumber ) {
         	animateCount = 0;
     		//Boxland.runProcSql("BEGIN TRIM_EVENT_SCORING; END;");
-        }
+        
+        	// for each mob, check what team they're in and sum the experience and food scores
+    		for(int j=0; j<teamsNumber; j++) {
+    			expScore[j] = 0;
+    		    fedScore[j] = 0;
+    			deathScore[j] = 0;
+    		}
+    		
+    		for ( int j=0; j<teamsNumber; j++) {
+    	    	for ( int i=j*teamSize; i<((j+1)*teamSize); i++ ) {
+    	    		expScore[j] = expScore[j] + theMobs[i].experience;
+    	    		fedScore[j] = fedScore[j] + theMobs[i].fedCount;
+    	    		deathScore[j] = deathScore[j] + theMobs[i].deathCount;
+    	    	}
+    	    }
+    	
+    		// average and update team values
+    		for ( int j=0; j<teamsNumber; j++) {
+    			expScore[j] = (float) expScore[j] / (float) teamSize;
+    			teamExpScore[j] = teamExpScore[j] + expScore[j];
+    		}
+    				
+		}
 				
 		// Updates one mob per tick
 		theMobs[animateCount].updateMob();
@@ -152,35 +186,6 @@ public class BoxLoc {
         		for (int k=0; k<dimX; k++) 
         			if ( wobjects[k][j][i] != null ) wobjects[k][j][i].drawObj(gl);
 	
-
-        // for each mob, check what team they're in and sum the experience and food scores
-		float expScore[] = new float[teamsNumber];
-		float fedScore[] = new float[teamsNumber];
-		
-		for(int j=0; j<teamsNumber; j++) {
-			expScore[j] = 0;
-		    fedScore[j] = 0;
-		}
-		
-		for ( int j=0; j<teamsNumber; j++) {
-	    	for ( int i=j*teamSize; i<((j+1)*teamSize); i++ ) {
-	    		expScore[j] = expScore[j] + theMobs[i].experience;
-		    	fedScore[j] = fedScore[j] + theMobs[i].fedCount;
-	    	}
-	    }
-	
-		// average all the values
-		for ( int j=0; j<teamsNumber; j++) {
-			expScore[j] = expScore[j] /  teamSize;
-			fedScore[j] = Math.round( fedScore[j] / teamSize );
-		}
-				
-		// update the team scores
-		for ( int j=0; j<teamsNumber; j++) {
-			teamExpScore[j] = teamExpScore[j] + expScore[j];
-			teamFedScore[j] = teamFedScore[j] + fedScore[j];
-		}
-	
 		gameSteps++;
 		
 		final GLUT glut = new GLUT();
@@ -188,9 +193,9 @@ public class BoxLoc {
 		for ( int j=0; j<teamsNumber; j++) {
 			gl.glLoadIdentity();
 			gl.glTranslatef(-1.5f,1.6f-(0.05f*(float)j) + Boxland.sizeAdjustY,-1.6f);
-	        gl.glColor3f(theMobs[j*teamSize].colourR,theMobs[j*teamSize].colourG,theMobs[j*teamSize].colourB);
+	        gl.glColor3f(theMobs[j*teamSize].baseR,theMobs[j*teamSize].baseG,theMobs[j*teamSize].baseB);
 	 		gl.glRasterPos2i(0, 0);
-	 		glut.glutBitmapString(GLUT.BITMAP_TIMES_ROMAN_24, "Team " + (j+1) + " - Current Food: " + fedScore[j] + "   Current Size: " + expScore[j] + "   Avg. Food (x10): " + Math.round(teamFedScore[j]/(gameSteps/10)) + "    Avg. Size (x10): " + (int) (teamExpScore[j]/(gameSteps/10)));
+	 		glut.glutBitmapString(GLUT.BITMAP_TIMES_ROMAN_24, "Team# " + (j+1) + " -   Current Food: " + fedScore[j] + "     Deaths: " + deathScore[j] + "     Current Size: " + expScore[j] + "     Avg. Size (x10): " + (int) (teamExpScore[j]/(gameSteps/10)) );
 		}
 		
 		gl.glLoadIdentity();
@@ -203,12 +208,6 @@ public class BoxLoc {
 
 	public BoxLoc() {
 		
-		// Initialize scoring
-		for(int j=0; j<teamsNumber; j++) {
-			teamExpScore[j] = 0;
-		    teamFedScore[j] = 0;
-		}
-		
 		// world stuff
         wobjects = new WorldObject[(int) dimX][(int) dimY][(int) dimZ];
         
@@ -220,10 +219,10 @@ public class BoxLoc {
         //mob setup stuff 
         for ( int j=0; j<teamsNumber; j++) {
         	for(int i=teamSize*j; i<teamSize*(j+1); i++) {
-        		if ( j == 0 ) theMobs[i] = new Mob("Red", 1.0f, 0.0f, 0.0f, 5);
-        		if ( j == 1 ) theMobs[i] = new Mob("Yellow", 1.0f, 1.0f, 0.1f, 4);
-        		if ( j == 2 ) theMobs[i] = new Mob("White",  1.0f, 1.0f, 1.0f, 1);
-        		if ( j == 3 ) theMobs[i] = new Mob("Zombie", 0.0f, 0.3f, 0.05f, 0);
+        		if ( j == 0 ) theMobs[i] = new Mob("Red"   , 1.0f, 0.0f, 0.0f, 5, 2);
+        		if ( j == 1 ) theMobs[i] = new Mob("Blue"  , 0.0f, 0.0f, 1.0f, 5, 2);
+        		if ( j == 2 ) theMobs[i] = new Mob("White" , 1.0f, 1.0f, 1.0f, 5, 3);
+        		if ( j == 3 ) theMobs[i] = new Mob("Inert" , 0.0f, 0.3f, 0.05f, 0, 0);
         		// make more rows for more teams.. I know....
 
         		// create mobs in database, set the wobDBID and insert into the matrix
@@ -238,6 +237,11 @@ public class BoxLoc {
         for(int i=0; i<inertsNumber; i++) {
     		theInerts[i] = new WorldObject("Inert", 0.0f, 0.3f, 0.0f);    		
     		insertObj(theInerts[i]) ;
-   	    }
+        }
+        
+  		// Initialize scoring
+   		for(int j=0; j<teamsNumber; j++) {
+   			teamExpScore[j] = 0;
+   		}
 	}
 }

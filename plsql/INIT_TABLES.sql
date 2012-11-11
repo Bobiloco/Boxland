@@ -4,6 +4,7 @@ PROCEDURE INIT_TABLES AS
  choiceID INT;
 
 BEGIN
+  DELETE FROM EVENT_HIST_NEW;
   DELETE FROM EVENT_SCORING;
   DELETE FROM EVENT_HIST;
 	DELETE FROM EVENT_DECISION;
@@ -21,7 +22,11 @@ BEGIN
     FROM event_choice_node;
   
   INSERT INTO event_choice ( event_choice_id, choice_facing, choice_target )
-    SELECT choiceID, 0, 'Killed'
+    SELECT choiceID, -1, 'Killed'
       FROM DUAL;
+
+  INSERT INTO event_choice ( event_choice_id, choice_facing, choice_target )
+    SELECT choiceID, -2, 'Starved'
+      FROM DUAL;      
 
 END INIT_TABLES;

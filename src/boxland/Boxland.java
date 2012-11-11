@@ -211,14 +211,15 @@ public class Boxland {
 		return result;
     }
     
-    public static void runKilledEvent(String procSQL, int mobDBID, int locX, int locY, int locZ ) {
+    public static void runDiedEvent(String procSQL, int mobDBID, String way, int locX, int locY, int locZ ) {
         
     	try {
         	CallableStatement callStmt = connection.prepareCall(procSQL);
         	callStmt.setInt(1, mobDBID);
-        	callStmt.setInt(2, locX);
-        	callStmt.setInt(3, locY);
-        	callStmt.setInt(4, locZ);
+        	callStmt.setString(2, way);
+        	callStmt.setInt(3, locX);
+        	callStmt.setInt(4, locY);
+        	callStmt.setInt(5, locZ);
         	callStmt.execute();
         	callStmt.close();
         	
