@@ -1,12 +1,19 @@
 create or replace 
-FUNCTION GET_BEST_FACING( mobDBID IN INT, choiceID IN INT, locID IN INT ) 
+FUNCTION GET_BEST_FACING( mobDBID    IN INT, 
+                          choiceID   IN INT, 
+                          locID      IN INT,
+                          lastFacing IN INT,
+                          weightCD   IN FLOAT,
+                          weightET   IN FLOAT,
+                          weightCF   IN FLOAT,
+                          weightEL   IN FLOAT,
+                          weightLF   IN FLOAT ) 
 RETURN INT 
 AS 
 
 retFacing INT;
 objCD     INT;
 objTeam   VARCHAR2(10);
-choiceCap FLOAT := 0.9;
 
 BEGIN
 
@@ -34,28 +41,107 @@ SELECT choice_facing
            --NVL(eventType.score,0) eventType, 
            --NVL(choiceFacing.score,0) choiceFacing,
            --NVL(eventLoc.score,0) eventLoc,
+           --NVL(eventLoc.score,0) choiceDir,
            CASE objCD 
              WHEN 0 THEN dbms_random.value()
-             WHEN 1 THEN NVL(eventType.score,0)
-             WHEN 2 THEN NVL(choiceFacing.score,0)
-             WHEN 3 THEN NVL(eventLoc.score,0)
-             WHEN 4 THEN ( 10* NVL(eventType.score,0) ) + NVL(choiceFacing.score,0) + NVL(eventLoc.score,0)
-             WHEN 5 THEN NVL(eventType.score,0) + NVL(choiceFacing.score,0) + NVL(eventLoc.score,0)
+             WHEN 1 THEN ( weightET * NVL(eventType.pct,0)) 
+                       + ( weightEL * NVL(eventLoc.pct,0))  
+                       + ( weightCD * NVL(choiceDir.pct,0)) 
+                       + ( weightCF * NVL(choiceFacing.pct,0))
+                       + ( weightLF * NVL(lastFace.pct,0))
+             WHEN 2 THEN CASE NVL(eventType.tot,0) WHEN 0 THEN weightET ELSE ( weightET * NVL(eventType.pct,0)) END
+                       + CASE NVL(eventLoc.tot,0) WHEN 0 THEN weightEL ELSE ( weightEL * NVL(eventLoc.pct,0)) END
+                       + CASE NVL(choiceDir.tot,0) WHEN 0 THEN weightCD ELSE ( weightCD * NVL(choiceDir.pct,0)) END
+                       + CASE NVL(choiceFacing.tot,0) WHEN 0 THEN weightCF ELSE ( weightCF * NVL(choiceFacing.pct,0)) END
+                       + CASE NVL(lastFace.tot,0) WHEN 0 THEN weightLF ELSE ( weightLF * NVL(lastFace.pct,0)) END  
+             WHEN 3 THEN CASE NVL(eventType.tot,0) WHEN 0 THEN 1 ELSE ( weightET * NVL(eventType.pct,0)) END
+                       + CASE NVL(eventLoc.tot,0) WHEN 0 THEN 1 ELSE ( weightEL * NVL(eventLoc.pct,0)) END
+                       + CASE NVL(choiceDir.tot,0) WHEN 0 THEN 1 ELSE ( weightCD * NVL(choiceDir.pct,0)) END
+                       + CASE NVL(choiceFacing.tot,0) WHEN 0 THEN 1 ELSE ( weightCF * NVL(choiceFacing.pct,0)) END
+                       + CASE NVL(lastFace.tot,0) WHEN 0 THEN 1 ELSE ( weightLF * NVL(lastFace.pct,0)) END                         
            END score
-      from event_choice ec
+        from event_choice ec
+      left join ( -- BY Last Move - should help correct faulty patterns
+                  -- The percentage of the time a team do... /see an action that has turned out badly
+                select score1.choice_facing,  
+                       score2.score tot,
+                       ( score2.score - score1.score ) / score2.score pct
+                  FROM (
+                    select eh.choice_facing, ed.last_facing, count(*) score
+                      from event_hist eh
+                      join event_decision ed on eh.event_decision_id = ed.event_decision_id
+                      join event_scoring es on eh.event_hist_id = es.event_hist_id
+                     where ed.last_facing = lastFacing
+                     group by eh.choice_facing, ed.last_facing ) score1
+                  join (
+                     select eh.choice_facing, ed.last_facing, count(*) score
+                      from event_hist eh
+                      join event_decision ed on eh.event_decision_id = ed.event_decision_id
+                      left join event_hist_new ehn on eh.event_hist_id = ehn.event_hist_id
+                     where ehn.event_hist_id is null
+                       and ed.last_facing = lastFacing
+                     group by eh.choice_facing, ed.last_facing ) score2
+                    on score1.choice_facing = score2.choice_facing ) lastFace
+        ON ec.choice_facing = lastFace.choice_facing
+      left join ( -- BY Direction
+                  -- The percentage of the time a team do... /see an action that has turned out badly
+                  select score1.choice_facing,  
+                         score2.score tot,  
+                       ( score2.score - score1.score ) / score2.score pct
+                       from ( -- How many times they scored the action as bad, across the team
+                           select eh.choice_facing, count(*) score
+                             from event_hist eh
+                             join event_scoring es on eh.event_hist_id = es.event_hist_id
+                             join event_decision ed on eh.event_decision_id = ed.event_decision_id
+                             join obj o on ed.obj_id  = o.obj_id 
+                                       and o.obj_team = objTeam
+                            group by eh.choice_facing ) score1
+                     join ( -- how many times they chose the action
+                            select eh.choice_facing, count(*) score
+                             from event_hist eh
+                             join event_decision ed on eh.event_decision_id = ed.event_decision_id
+                             join obj o on ed.obj_id  = o.obj_id 
+                                       and o.obj_team = objTeam
+                             left join event_hist_new ehn on eh.event_hist_id = ehn.event_hist_id
+                            where ehn.event_hist_id is null
+                       group by eh.choice_facing ) score2
+                     ON score1.choice_facing = score2.choice_facing ) choiceDir
+        ON ec.choice_facing = choiceDir.choice_facing
+      left join ( -- BY EVENT - TYPE
+                  -- The percentage of the time a team do... /see an action that has turned out badly
+                select score1.event_type,  
+                       score2.score tot,  
+                     ( score2.score - score1.score ) / score2.score pct
+                    from ( -- How many times they scored the action as bad, across the team
+                           select eh.event_type, count(*) score
+                             from event_hist eh
+                             join event_scoring es on eh.event_hist_id = es.event_hist_id
+                             join event_decision ed on eh.event_decision_id = ed.event_decision_id
+                             join obj o on ed.obj_id  = o.obj_id 
+                                       and o.obj_team = objTeam
+                            group by eh.event_type ) score1
+                     join ( -- how many times they chose the action
+                            select eh.event_type, count(*) score
+                              from event_hist eh
+                              join event_decision ed on eh.event_decision_id = ed.event_decision_id
+                              join obj o on ed.obj_id  = o.obj_id 
+                                        and o.obj_team = objTeam
+                              left join event_hist_new ehn on eh.event_hist_id = ehn.event_hist_id
+                             where ehn.event_hist_id is null
+                             group by event_type ) score2
+                     ON score1.event_type = score2.event_type ) eventType
+        ON ec.choice_target = eventType.event_type
       left join ( -- BY CHOICE - FACING
                   -- By choice (node), what facing has bad memories by percentages
-                  select score1.choice_facing, 
-                    CASE WHEN score1.score / score2.score > choiceCap 
-                              THEN choiceCap
-                              ELSE score1.score / score2.score
-                          END score
+                  select score1.choice_facing,  
+                         score2.score tot,
+                       ( score2.score - score1.score ) / score2.score pct
                     from ( -- Individual choice counts
                            select o.obj_team, ed.event_choice_id, eh.choice_facing, count(*) score
                              from event_hist eh
                              join event_scoring es on eh.event_hist_id = es.event_hist_id
                              join event_decision ed on eh.event_decision_id = ed.event_decision_id
-                                                   AND ed.event_choice_id = choiceID
+                                                   AND ed.event_choice_id   = choiceID
                              join obj o on ed.obj_id = o.obj_id 
                                        and o.obj_team = objTeam
                             group by o.obj_team, ed.event_choice_id, eh.choice_facing ) score1
@@ -63,50 +149,20 @@ SELECT choice_facing
                            select o.obj_team, ed.event_choice_id, eh.choice_facing, count(*) score
                              from event_hist eh
                              join event_decision ed on eh.event_decision_id = ed.event_decision_id
-                                                   AND ed.event_choice_id = choiceID
-                             join obj o on ed.obj_id = o.obj_id 
+                                                   AND ed.event_choice_id   = choiceID
+                             join obj o on ed.obj_id  = o.obj_id 
                                        and o.obj_team = objTeam
-                            where eh.event_hist_id not in ( select ehs.event_hist_id
-                                                              from event_hist_new ehs
-                                                             where eh.event_hist_id = ehs.event_hist_id)
-                            group by o.obj_team, ed.event_choice_id, eh.choice_facing ) score2
+                        left join event_hist_new ehn on eh.event_hist_id = ehn.event_hist_id
+                            where ehn.event_hist_id is null
+                             group by o.obj_team, ed.event_choice_id, eh.choice_facing ) score2
                      ON score1.choice_facing = score2.choice_facing ) choiceFacing
         on ec.choice_facing   = choiceFacing.choice_facing
-      left join ( -- BY EVENT - TYPE
-                  -- The percentage of the time a team do... /see an action that has turned out badly
-                select score1.event_type, 
-                   CASE WHEN score1.score / score2.score > choiceCap 
-                              THEN choiceCap
-                              ELSE score1.score / score2.score
-                          END score
-                    from ( -- How many times they scored the action as bad, across the team
-                           select eh.event_type, count(*) score
-                             from event_hist eh
-                             join event_scoring es on eh.event_hist_id = es.event_hist_id
-                             join event_decision ed on eh.event_decision_id = ed.event_decision_id
-                             join obj o on ed.obj_id = o.obj_id 
-                                       and o.obj_team = objTeam
-                            group by eh.event_type ) score1
-                     join ( -- how many times they chose the action
-                            select eh.event_type, count(*) score
-                              from event_hist eh
-                              join event_decision ed on eh.event_decision_id = ed.event_decision_id
-                              join obj o on ed.obj_id = o.obj_id 
-                                        and o.obj_team = objTeam
-                             where eh.event_hist_id not in ( select ehs.event_hist_id
-                                                               from event_hist_new ehs
-                                                              where eh.event_hist_id = ehs.event_hist_id)
-                            group by event_type ) score2
-                     ON score1.event_type = score2.event_type ) eventType
-        ON ec.choice_target = eventType.event_type
       left join ( -- By EVENT - LOC
                   -- For this locID, how badly did chosing a given facing turn out, by facing
                   --   By percentage: ( scored / chosen )
-                  SELECT score1.choice_facing, 
-                    CASE WHEN score1.score / score2.score > choiceCap 
-                              THEN choiceCap
-                              ELSE score1.score / score2.score
-                          END score
+                  SELECT score1.choice_facing,  
+                         score2.score tot,
+                       ( score2.score - score1.score ) / score2.score pct
                     FROM ( -- How many times they regretted a direction
                            select el.event_loc_id, eh.choice_facing,  count(*) score
                              from event_loc el
@@ -125,10 +181,9 @@ SELECT choice_facing
                              join obj o on ed.obj_id = o.obj_id 
                                        and o.obj_team = objTeam
                              join event_hist eh on ed.event_decision_id = eh.event_decision_id
+                             left join event_hist_new ehn on eh.event_hist_id = ehn.event_hist_id
                             where el.event_loc_id = locID
-                              AND eh.event_hist_id not in ( select ehs.event_hist_id
-                                                              from event_hist_new ehs
-                                                             where eh.event_hist_id = ehs.event_hist_id)
+                              and ehn.event_hist_id is null
                             group by el.event_loc_id, eh.choice_facing
                           ) score2
                       ON score1.event_loc_id = score2.event_loc_id
@@ -136,7 +191,7 @@ SELECT choice_facing
          on ec.choice_facing = eventLoc.choice_facing
       where ec.event_choice_id = choiceID
      
-  ) ORDER BY 2, dbms_random.value()
+  ) ORDER BY 2 DESC, dbms_random.value()
 
 ) WHERE ROWNUM = 1;
 

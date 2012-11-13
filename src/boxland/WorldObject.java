@@ -107,7 +107,7 @@ public class WorldObject {
     	if ( explodeCount > 0 ) explodeCount++;
 		if ( explodeCount > explodeSize ) explodeCount = 0;
 		
-		drawSize = cubeSize + ( growCount * growSize ) + ( 10.0f * explodeCount * growSize ) / explodeSize;
+		drawSize = cubeSize + ( growCount * growSize ) + ( explodeCount * growSize ) / explodeSize;
 	}
 	
 	public void drawAction() {};

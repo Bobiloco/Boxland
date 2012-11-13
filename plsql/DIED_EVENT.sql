@@ -34,16 +34,17 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
   
   END IF;
   
-  decisionID := return_decision_match ( mobDBID, choiceID, locID );
+  decisionID := return_decision_match ( mobDBID, choiceID, locID, -1 );
   
   IF decisionID is null 
   THEN
 
-    INSERT INTO EVENT_DECISION ( EVENT_DECISION_ID, OBJ_ID, EVENT_CHOICE_ID, EVENT_LOC_ID ) 
+    INSERT INTO EVENT_DECISION ( EVENT_DECISION_ID, OBJ_ID, EVENT_CHOICE_ID, EVENT_LOC_ID, LAST_FACING ) 
       SELECT 0, 
              mobDBID, 
              choiceID,
-             locID
+             locID,
+             -1
         FROM DUAL;
       
     SELECT max(EVENT_DECISION_ID) 
@@ -53,7 +54,7 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
   END IF;
 
   INSERT INTO EVENT_HIST ( EVENT_HIST_ID, EVENT_DECISION_ID, EVENT_TYPE, CHOICE_FACING ) 
-    SELECTf 0, decisionID, way, 0 FROM DUAL;
+    SELECT 0, decisionID, way, -2 FROM DUAL;
 
   -- They only learn that the last n < 50 moves leading to starvation were bad
   IF way = 'Starved' THEN

@@ -19,6 +19,7 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
   choiceID INT;
   facingID INT;
   mobTeam VARCHAR2(10);
+  lastFacing INT;
   
   BEGIN
 
@@ -39,14 +40,14 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
         -- This is ugly now that I've pulled the xyz... still works, though
         for i in 0..6 loop
             
-            IF ( i=0 and target0 IS NOT NULL ) OR
-               ( i=1 and target1 IS NOT NULL ) OR
-               ( i=2 and target2 IS NOT NULL ) OR
-               ( i=3 and target3 IS NOT NULL ) OR
-               ( i=4 and target4 IS NOT NULL ) OR
-               ( i=5 and target5 IS NOT NULL ) OR
-               ( i=6 and target6 IS NOT NULL ) THEN 
-            
+            IF ( i=0 and target0 NOT IN ('Ground','Air') ) OR
+               ( i=1 and target1 NOT IN ('Ground','Air') ) OR
+               ( i=2 and target2 NOT IN ('Ground','Air') ) OR
+               ( i=3 and target3 NOT IN ('Ground','Air') ) OR
+               ( i=4 and target4 NOT IN ('Ground','Air') ) OR
+               ( i=5 and target5 NOT IN ('Ground','Air') ) OR
+               ( i=6 and target6 NOT IN ('Ground','Air') ) 
+            THEN
                 insert into event_choice ( EVENT_CHOICE_ID, CHOICE_FACING, CHOICE_TARGET )
                   select choiceID, i, CASE i WHEN 0 THEN target0
                                              WHEN 1 THEN target1
@@ -76,8 +77,19 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
   
   END IF;
   
+ -- Get the last action taken by this mob, 
+  --   or set to -3 if null ( -1 and -2 are also okay. )
+  lastFacing := return_last_facing( mobDBID );
+  IF lastFacing IS NULL THEN lastFacing := -3; END IF;
+
   -- Set facing
-  facingID := get_best_facing(mobDBID, choiceID, locID);
+  facingID := get_best_facing(mobDBID, choiceID, locID, lastFacing,
+                              1,   --Direction multiplier
+                              3,   --Choice multiplier
+                              1,   --State multiplier
+                              1,   --Location multiplier
+                              2 ); --Last decision multiplier
+
   -- If no move is preferred randomize
   IF facingID is null 
   THEN 
@@ -98,12 +110,12 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
          choice_facing = facingID;
   
   -- See if that mob has made a similar decision
-  decisionID := return_decision_match(mobDBID, choiceID, locID);       
+  decisionID := return_decision_match(mobDBID, choiceID, locID, lastFacing);       
   IF decisionID IS NULL
     THEN
       -- insert new decision
-      INSERT INTO event_decision ( event_decision_id, obj_id, event_choice_id, event_loc_id ) 
-          SELECT 0, mobDBID, choiceID, locID FROM DUAL;
+      INSERT INTO event_decision ( event_decision_id, obj_id, event_choice_id, event_loc_id, last_facing ) 
+          SELECT 0, mobDBID, choiceID, locID, lastFacing FROM DUAL;
       
       SELECT MAX(event_decision_id)
         INTO decisionID

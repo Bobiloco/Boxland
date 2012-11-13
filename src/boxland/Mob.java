@@ -57,12 +57,15 @@ public class Mob extends WorldObject {
     		if ( facing == 5 ) dirZ = dirZ-1;
             if ( facing == 6 ) dirZ = dirZ+1;
             
-    		if ( !BoxLoc.checkIsGround(dirX,dirY,dirZ) ) {
+    		if ( BoxLoc.checkIsGround(dirX,dirY,dirZ) ) {
+    			faceToken[facing] = "Ground"; 
+    			} else { 
     			if ( BoxLoc.checkHasGround(dirX,dirY,dirZ) ) {
-    				
-    				faceToken[facing] = BoxLoc.getWobID(dirX, dirY, dirZ);
-    				if ( facing == 0 ) faceToken[facing] = "Self";
-    			
+       			   faceToken[facing] = BoxLoc.getWobID(dirX, dirY, dirZ);
+    			   if ( facing == 0 ) 
+    			  	 faceToken[facing] = "Self";
+    			} else {
+    				 faceToken[facing] = "Air";
     			}
     		}
     	}
@@ -129,8 +132,7 @@ public class Mob extends WorldObject {
 			// mob animation stuff
 			if ( explodeCount == 0 ) explodeCount = 1;
     		if ( experience < 10 ) experience++;
-        	fedCount = fedCount + 50;
-        	if ( fedCount > 100 ) fedCount = 100;
+        	fedCount = 50;
         	woEaten.died("Killed");	
 		};
 	}
@@ -141,7 +143,7 @@ public class Mob extends WorldObject {
 		shiftR = experience * 0.05f;
 		shiftG = experience * 0.05f;
 		shiftB = experience * 0.05f;
-		drawSize = drawSize * ( (float) fedCount / 50f );
+		drawSize = drawSize * ( (float) fedCount / 20f );
 		
     }
 

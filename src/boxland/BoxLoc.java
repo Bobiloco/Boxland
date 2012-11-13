@@ -7,20 +7,21 @@ import com.jogamp.opengl.util.gl2.GLUT;
 
 public class BoxLoc {
 
-	//public static final String gameMode = "FindFood";
+	//public static final String gameMode = "FindFoodPR";
+	public static final String gameMode = "FindFood";
 	//public static final String gameMode = "Survival";
-	public static final String gameMode = "RedBlue";
+	//public static final String gameMode = "RedBlue";
 	
 	// config variables
-	public static final int teamsNumber = 2;
+	public static final int teamsNumber = 1;
 	public static final int teamSize = 10;
-	private static final int inertsNumber = 50;
-	public static final float dimX = 10; 
-	public static final float dimY = 6; 
-	public static final float dimZ = 8; 
+	private static final int inertsNumber = 40;
+	public static final float dimX = 20; 
+	public static final float dimY = 10; 
+	public static final float dimZ = 10; 
 	public static final float startX = -dimX/2.0f;
 	public static final float startY = ( -dimY/2.0f );
-	public static final float startZ = -dimZ-(dimX+dimY)/2.0f;
+	public static final float startZ = -dimZ-( (dimX+dimY)/(dimZ/5.0f) );
 	
 	// Counters
 	private static int gameSteps = 0;
@@ -91,6 +92,12 @@ public class BoxLoc {
 			if ( gameMode.equals("FindFood"))
 				if ( wo.getWobID().equals("Inert") ) rand6 = 1; else { rand6 = 4; };
 			
+			if ( gameMode.equals("FindFoodPR")) {
+				if ( wo.getWobID().equals("Inert") ) rand6 = 1;
+				if ( wo.getWobID().equals("Red") ) rand6 = 4;
+				if ( wo.getWobID().equals("Blue") ) rand6 = 3;
+			}
+		
 			if ( gameMode.equals("RedBlue")) {
 				if ( wo.getWobID().equals("Red") ) rand6 = 0;
 				if ( wo.getWobID().equals("Blue") ) rand6 = 3;
@@ -147,7 +154,8 @@ public class BoxLoc {
 		// Sets the animation frames to the number of mobs and updates screen variables
 		if ( animateCount == teamSize * teamsNumber ) {
         	animateCount = 0;
-    		//Boxland.runProcSql("BEGIN TRIM_EVENT_SCORING; END;");
+    		
+        	Boxland.runProcSql("BEGIN TRIM_EVENT_SCORING; END;");
         
         	// for each mob, check what team they're in and sum the experience and food scores
     		for(int j=0; j<teamsNumber; j++) {
@@ -219,9 +227,9 @@ public class BoxLoc {
         //mob setup stuff 
         for ( int j=0; j<teamsNumber; j++) {
         	for(int i=teamSize*j; i<teamSize*(j+1); i++) {
-        		if ( j == 0 ) theMobs[i] = new Mob("Red"   , 1.0f, 0.0f, 0.0f, 5, 2);
-        		if ( j == 1 ) theMobs[i] = new Mob("Blue"  , 0.0f, 0.0f, 1.0f, 5, 2);
-        		if ( j == 2 ) theMobs[i] = new Mob("White" , 1.0f, 1.0f, 1.0f, 5, 3);
+        		if ( j == 0 ) theMobs[i] = new Mob("Red"   , 1.0f, 0.0f, 0.0f, 1, 3);
+        		if ( j == 1 ) theMobs[i] = new Mob("Blue"  , 0.0f, 0.0f, 1.0f, 3, 3);
+        		if ( j == 2 ) theMobs[i] = new Mob("White" , 1.0f, 1.0f, 1.0f, 3, 3);
         		if ( j == 3 ) theMobs[i] = new Mob("Inert" , 0.0f, 0.3f, 0.05f, 0, 0);
         		// make more rows for more teams.. I know....
 
