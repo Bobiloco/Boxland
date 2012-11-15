@@ -83,12 +83,7 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
   IF lastFacing IS NULL THEN lastFacing := -3; END IF;
 
   -- Set facing
-  facingID := get_best_facing(mobDBID, choiceID, locID, lastFacing,
-                              1,   --Direction multiplier
-                              3,   --Choice multiplier
-                              1,   --State multiplier
-                              1,   --Location multiplier
-                              2 ); --Last decision multiplier
+  facingID := get_best_facing(mobDBID, choiceID, locID, lastFacing );
 
   -- If no move is preferred randomize
   IF facingID is null 
@@ -140,7 +135,7 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
     FROM EVENT_HIST_NEW
    WHERE obj_id = mobDBID;
    
-  IF eventID > 50 THEN
+  IF eventID > 49 THEN
     
     SELECT MIN(EVENT_HIST_ID)
       INTO eventID

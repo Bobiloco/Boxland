@@ -6,11 +6,14 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
   decisionID INT;
   locID INT;
   choiceID INT;
+  killedID INT;
    
+   -- The current events under consideration for this mob
    cursor currEvents is
    select event_hist_id
      from event_hist_new
-     where obj_id = mobDBID;
+     where obj_id = mobDBID
+    order by event_hist_id;
   
   BEGIN
 
@@ -44,7 +47,7 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
              mobDBID, 
              choiceID,
              locID,
-             -1
+             -1 -- Is this right? Should it be a case?
         FROM DUAL;
       
     SELECT max(EVENT_DECISION_ID) 
@@ -52,41 +55,52 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
       FROM EVENT_DECISION;
 
   END IF;
+  
+  killedID := return_last_action( mobDBID);
 
   INSERT INTO EVENT_HIST ( EVENT_HIST_ID, EVENT_DECISION_ID, EVENT_TYPE, CHOICE_FACING ) 
-    SELECT 0, decisionID, way, -2 FROM DUAL;
+    SELECT 0, 
+           decisionID, 
+           way, 
+           CASE way WHEN 'Killed' THEN -1
+                    WHEN 'Starved' THEN -2
+           END choice_facing
+      FROM DUAL;
 
-  -- They only learn that the last n < 50 moves leading to starvation were bad
+  -- Create a scoring record that this was bad
+  SELECT MAX(event_hist_id) INTO eventID FROM event_hist;
+  INSERT INTO event_scoring ( event_hist_id )
+      SELECT eventID FROM DUAL;      
+
+  -- They only learn that the last n < 49 moves leading to starvation were bad
   IF way = 'Starved' THEN
   
-    SELECT max(EVENT_HIST_ID) 
-      INTO eventID
-      FROM EVENT_HIST;
-  
-    -- Enter the top(chainCount) rows into the naughty table, except the 1st
+      -- Enter the top(chainCount) rows into the naughty table, except the 1st
     INSERT INTO EVENT_SCORING ( EVENT_HIST_ID )
-      SELECT eh.event_hist_id
-        FROM event_hist eh
-        JOIN event_decision ed  ON eh.event_decision_id = ed.event_decision_id
-        JOIN event_hist_new ehn ON eh.event_hist_id = ehn.event_hist_id
-                               AND ed.obj_id        = ehn.obj_id
-      WHERE ed.obj_id = mobDBID;
+      SELECT event_hist_id
+        FROM event_hist_new 
+       WHERE obj_id = mobDBID;
           
   ELSE
    
     -- If a mob is killed, remove the memories from the buffer and event_hist
-    --   This is because being killed is so arbitrary that it shouldn't affect the decision trees
+    -- saved the 'killedID' event for the last thing leading to their deaths
+    -- Being killed is pretty arbitrary but location info would be helpful
+  
+    IF killedID IS NOT NULL THEN
+      INSERT INTO EVENT_SCORING ( EVENT_HIST_ID ) SELECT killedID EVENT_HIST_ID FROM DUAL;
+    END IF;
      
     FOR delete_event_id in currEvents
     LOOP
       DELETE FROM event_hist_new where event_hist_id = delete_event_id.event_hist_id;
-      DELETE FROM event_hist where event_hist_id = delete_event_id.event_hist_id;
+      DELETE FROM event_hist where event_hist_id = delete_event_id.event_hist_id
+                               and delete_event_id.event_hist_id <> killedID;
     END LOOP;
   
   END IF;
 
-     -- Clears out the new decisions for this jobject
-  DELETE FROM event_hist_new 
-   WHERE obj_id = mobDBID;
+  -- Clears out the new decisions for this jobject
+  DELETE FROM event_hist_new WHERE obj_id = mobDBID;
      
 END DIED_EVENT;

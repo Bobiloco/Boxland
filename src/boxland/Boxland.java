@@ -34,7 +34,7 @@ public class Boxland {
     private final Frame frame;
     private final Animator animator;
     
-    public static final float sizeAdjustY = 10.0f;
+    public static final float sizeAdjustY = 9.5f;
 
 	private static final class boxKeyListener extends KeyAdapter {
  
@@ -99,7 +99,7 @@ public class Boxland {
             gl.glMatrixMode(GLMatrixFunc.GL_PROJECTION);
             gl.glLoadIdentity();
             glu.gluPerspective(50.0f, h, 1.0, 1000.0);
-            glu.gluLookAt(-0.5f,11,0, -0.5f, 11, -10, 0, 1, 0);
+            glu.gluLookAt(-0.5f,10.5,0, -0.5f, 10.5, -10, 0, 1, 0);
             gl.glMatrixMode(GLMatrixFunc.GL_MODELVIEW);
             gl.glLoadIdentity();
         }

@@ -174,17 +174,17 @@ CREATE INDEX EVENT_LOC_IDX ON EVENT_LOC ( EVENT_LOC_ID, LOC_X, LOC_Y, LOC_Z );
 /
  
 /*
-BEGIN
-DBMS_STATS.GATHER_SCHEMA_STATS('Terre');
-END;
+declare
+  cursor c1 is select index_name, tablespace_name FROM user_indexes;
+  cursor c2 is select * from user_tables;
+begin
+  for curse in c1 loop
+    EXECUTE IMMEDIATE 'alter index ' || curse.index_name || ' rebuild tablespace ' || curse.tablespace_name;
+  end loop;
+  DBMS_STATS.GATHER_SCHEMA_STATS('terre');
+  for curse2 in c2 loop
+    EXECUTE IMMEDIATE 'comment on table ' || curse2.table_name || ' is ''''';
+  end loop;
+end;
 /
-comment on table EVENT_HIST is '';
-comment on table EVENT_CHOICE is '';
-comment on table EVENT_SCORING is '';
-comment on table EVENT_CHOICE_NODE is '';
-comment on table OBJ is '';
-comment on table event_hist_new is '';
-comment on table event_facing_last is '';
-comment on table event_decision is '';
-comment on table event_loc is '';
 */

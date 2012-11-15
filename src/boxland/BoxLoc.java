@@ -8,16 +8,17 @@ import com.jogamp.opengl.util.gl2.GLUT;
 public class BoxLoc {
 
 	//public static final String gameMode = "FindFoodPR";
-	public static final String gameMode = "FindFood";
+	//public static final String gameMode = "FindFood";
 	//public static final String gameMode = "Survival";
 	//public static final String gameMode = "RedBlue";
+	public static final String gameMode = "FourSpawn";
 	
 	// config variables
-	public static final int teamsNumber = 1;
+	public static final int teamsNumber = 4;
 	public static final int teamSize = 10;
 	private static final int inertsNumber = 40;
-	public static final float dimX = 20; 
-	public static final float dimY = 10; 
+	public static final float dimX = 18; 
+	public static final float dimY = 8; 
 	public static final float dimZ = 10; 
 	public static final float startX = -dimX/2.0f;
 	public static final float startY = ( -dimY/2.0f );
@@ -98,6 +99,14 @@ public class BoxLoc {
 				if ( wo.getWobID().equals("Blue") ) rand6 = 3;
 			}
 		
+			if ( gameMode.equals("FourSpawn")) {
+				if ( wo.getWobID().equals("Inert") ) rand6 = 1;
+				if ( wo.getWobID().equals("Red") ) rand6 = 0;
+				if ( wo.getWobID().equals("Blue") ) rand6 = 3;
+				if ( wo.getWobID().equals("Yellow") ) rand6 = 2;
+				if ( wo.getWobID().equals("Zombie") ) rand6 = 1;
+			}
+			
 			if ( gameMode.equals("RedBlue")) {
 				if ( wo.getWobID().equals("Red") ) rand6 = 0;
 				if ( wo.getWobID().equals("Blue") ) rand6 = 3;
@@ -227,10 +236,10 @@ public class BoxLoc {
         //mob setup stuff 
         for ( int j=0; j<teamsNumber; j++) {
         	for(int i=teamSize*j; i<teamSize*(j+1); i++) {
-        		if ( j == 0 ) theMobs[i] = new Mob("Red"   , 1.0f, 0.0f, 0.0f, 1, 3);
-        		if ( j == 1 ) theMobs[i] = new Mob("Blue"  , 0.0f, 0.0f, 1.0f, 3, 3);
-        		if ( j == 2 ) theMobs[i] = new Mob("White" , 1.0f, 1.0f, 1.0f, 3, 3);
-        		if ( j == 3 ) theMobs[i] = new Mob("Inert" , 0.0f, 0.3f, 0.05f, 0, 0);
+        		if ( j == 0 ) theMobs[i] = new Mob("Red"   , 1.0f, 0.0f, 0.0f, 1, 2);
+        		if ( j == 1 ) theMobs[i] = new Mob("Blue"  , 0.0f, 0.0f, 1.0f, 1, 2);
+        		if ( j == 2 ) theMobs[i] = new Mob("Yellow" , 1.0f, 1.0f, 0.0f, 1, 3);
+        		if ( j == 3 ) theMobs[i] = new Mob("Zombie" , 0.0f, 0.3f, 0.05f, 0, 2);
         		// make more rows for more teams.. I know....
 
         		// create mobs in database, set the wobDBID and insert into the matrix
