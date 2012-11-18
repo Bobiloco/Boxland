@@ -13,129 +13,99 @@ public class DrawBox {
 	 * Source code under CC BY 3.0 
 	 */
 	
-	public static void DrawBackground(GL2 gl2, float pulse) {
-		 
+	public static void DrawBackground(GL2 gl2, double pulse) {
+	try { 
 		 final GL2 gl = gl2.getGL().getGL2();
 		 
-		 float squareSize = 0.8f;
-		 float offsetSize = 0.5f;
+		 double cubeSize = 0.4;
+		 double offsetSize = 0.5; // draws the walls out a little
 		 
-		 pulse = (float) Math.cos(pulse)/50;
+		 double posX = BoxLoc.startX;
+		 double posY = BoxLoc.startY+Boxland.sizeAdjustY;
+		 double negY = -BoxLoc.startY+Boxland.sizeAdjustY;
+		 double posZ = BoxLoc.startZ;
 		 
-      // Background
-         // x and y
-         for(float i=0; i<BoxLoc.dimX; i++){
-         	for(float j=0; j<BoxLoc.dimY; j++){
-         		
+		 double dimX = BoxLoc.dimX;
+		 double dimY = BoxLoc.dimY;
+		 double dimZ = BoxLoc.dimZ;
+		 
+		 pulse = Math.cos(pulse)/100;
+		 
+         // x and y - Background
+         for(int i=0;i<BoxLoc.dimX;i++){
+         	for(int j=0;j<BoxLoc.dimY;j++){
                  gl.glLoadIdentity();
-                 gl.glTranslatef(BoxLoc.startX, BoxLoc.startY + Boxland.sizeAdjustY, BoxLoc.startZ);
-
-                 // move to the proper position on the grid
-                 gl.glTranslatef(i, j, -offsetSize);
-                
-                 // Draw A Quad
+                 gl.glTranslated(posX,posY,posZ);
+                 gl.glTranslated(i,j,-offsetSize);
                  gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-                 gl.glColor3f( (i/(BoxLoc.dimX+1.0f))+pulse, (j/(BoxLoc.dimY+1.0f))+pulse, pulse);   // set the color of the quad
-                 gl.glVertex3f(-squareSize/2f, squareSize/2f, 0);   // Top Left
-                 gl.glVertex3f( squareSize/2f, squareSize/2f, 0);   // Top Right
-                 gl.glVertex3f( squareSize/2f,-squareSize/2f, 0);   // Bottom Right
-                 gl.glVertex3f(-squareSize/2f,-squareSize/2f, 0);   // Bottom Left
-                 // Done Drawing The Quad
+                 gl.glColor3d(i/dimX+pulse,j/dimY+pulse,pulse);
+                 gl.glVertex3d(-cubeSize,cubeSize,0);  // Top Left
+                 gl.glVertex3d(cubeSize,cubeSize,0);   // Top Right
+                 gl.glVertex3d(cubeSize,-cubeSize,0);  // Bottom Right
+                 gl.glVertex3d(-cubeSize,-cubeSize,0); // Bottom Left
                  gl.glEnd();
-
-         	}
-        } 
-        
-         // x and z ( bottom )
-         for(float i=0; i<BoxLoc.dimX; i++){
-         	for(float j=0; j<BoxLoc.dimZ; j++){
-         		
+     		}
+         } 
+         // x and z - bottom
+         for(int i=0; i<BoxLoc.dimX; i++){
+         	for(int j=0; j<BoxLoc.dimZ; j++){
                  gl.glLoadIdentity();
-                 gl.glTranslatef(BoxLoc.startX, BoxLoc.startY + Boxland.sizeAdjustY, BoxLoc.startZ);
-
-                 // move to the proper position on the grid
-                 gl.glTranslatef(i, -offsetSize, j);
-                
-                 // Draw A Quad
+                 gl.glTranslated(posX,posY,posZ);
+                 gl.glTranslated(i,-offsetSize, j);
                  gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-                 gl.glColor3f( (i/(BoxLoc.dimX+1.0f))+pulse, pulse, (j/(BoxLoc.dimZ+1))+pulse);   // set the color of the quad
-                 gl.glVertex3f(-squareSize/2f, 0, squareSize/2f);   // Top Left
-                 gl.glVertex3f( squareSize/2f, 0, squareSize/2f);   // Top Right
-                 gl.glVertex3f( squareSize/2f, 0,-squareSize/2f);   // Bottom Right
-                 gl.glVertex3f(-squareSize/2f, 0,-squareSize/2f);   // Bottom Left
-                 // Done Drawing The Quad
+                 gl.glColor3d(i/dimX+pulse,pulse,j/dimZ+pulse);
+                 gl.glVertex3d(-cubeSize,0,cubeSize);  // Top Left
+                 gl.glVertex3d(cubeSize,0,cubeSize);   // Top Right
+                 gl.glVertex3d(cubeSize,0,-cubeSize);  // Bottom Right
+                 gl.glVertex3d(-cubeSize,0,-cubeSize); // Bottom Left
                  gl.glEnd();
-
          	}
-        } 
-         
+         } 
          // x and z ( top )
-         for(float i=0; i<BoxLoc.dimX; i++){
-         	for(float j=0; j<BoxLoc.dimZ; j++){
-         		
+         for(int i=0; i<BoxLoc.dimX; i++){
+         	for(int j=0; j<BoxLoc.dimZ; j++){
                  gl.glLoadIdentity();
-                 gl.glTranslatef(BoxLoc.startX, -BoxLoc.startY + Boxland.sizeAdjustY, BoxLoc.startZ);
-
-                 // move to the proper position on the grid
-                 gl.glTranslatef(i, offsetSize - 1, j);
-                
-                 // Draw A Quad
+                 gl.glTranslated(posX,negY,posZ);
+                 gl.glTranslated(i,offsetSize-1,j);
                  gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-                 gl.glColor3f( (i/(BoxLoc.dimX+1.0f))+pulse, 1.0f, (j/(BoxLoc.dimZ+1.0f))+pulse);   // set the color of the quad
-                 gl.glVertex3f(-squareSize/2f, 0, squareSize/2f);   // Top Left
-                 gl.glVertex3f( squareSize/2f, 0, squareSize/2f);   // Top Right
-                 gl.glVertex3f( squareSize/2f, 0,-squareSize/2f);   // Bottom Right
-                 gl.glVertex3f(-squareSize/2f, 0,-squareSize/2f);   // Bottom Left
-                 // Done Drawing The Quad
+                 gl.glColor3d((i/dimX)+pulse,1,(j/dimZ)+pulse);
+                 gl.glVertex3d(-cubeSize,0,cubeSize);  // Top Left
+                 gl.glVertex3d(cubeSize,0,cubeSize);   // Top Right
+                 gl.glVertex3d(cubeSize,0,-cubeSize);  // Bottom Right
+                 gl.glVertex3d(-cubeSize,0,-cubeSize); // Bottom Left
                  gl.glEnd();
-
          	}
         } 
-         
          // y an z ( left )
-         for(float i=0; i<BoxLoc.dimY; i++){
-         	for(float j=0; j<BoxLoc.dimZ; j++){
-         		
+         for(int i=0; i<BoxLoc.dimY; i++){
+         	for(int j=0; j<BoxLoc.dimZ; j++){
                  gl.glLoadIdentity();
-                 gl.glTranslatef(BoxLoc.startX, BoxLoc.startY + Boxland.sizeAdjustY, BoxLoc.startZ);
-
-                 // move to the proper position on the grid
-                 gl.glTranslatef(-offsetSize, i, j );
-                
-                 // Draw A Quad
+                 gl.glTranslated(posX,posY,posZ);
+                 gl.glTranslated(-offsetSize,i,j);
                  gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-                 gl.glColor3f( pulse, (i/(BoxLoc.dimY+1.0f))+pulse, (j/(BoxLoc.dimZ+1.0f))+pulse );   // set the color of the quad
-                 gl.glVertex3f( 0, -squareSize/2f, squareSize/2f);   // Top Left
-                 gl.glVertex3f( 0, squareSize/2f, squareSize/2f);   // Top Right
-                 gl.glVertex3f( 0, squareSize/2f,-squareSize/2f);   // Bottom Right
-                 gl.glVertex3f( 0, -squareSize/2f,-squareSize/2f);   // Bottom Left
-                 // Done Drawing The Quad
+                 gl.glColor3d(pulse,(i/dimY)+pulse,(j/dimZ)+pulse);
+                 gl.glVertex3d(0,-cubeSize,cubeSize);  // Top Left
+                 gl.glVertex3d(0,cubeSize,cubeSize);   // Top Right
+                 gl.glVertex3d(0,cubeSize,-cubeSize);  // Bottom Right
+                 gl.glVertex3d(0,-cubeSize,-cubeSize); // Bottom Left
                  gl.glEnd();
-
-         	}
+        	}
          }           
-
       // y an z ( right )
-         for(float i=0; i<BoxLoc.dimY; i++){
-         	for(float j=0; j<BoxLoc.dimZ; j++){
-         		
+         for(int i=0; i<BoxLoc.dimY; i++){
+         	for(int j=0; j<BoxLoc.dimZ; j++){
                  gl.glLoadIdentity();
-                 gl.glTranslatef(-BoxLoc.startX, BoxLoc.startY + Boxland.sizeAdjustY, BoxLoc.startZ);
-
-                 // move to the proper position on the grid
-                 gl.glTranslatef(offsetSize-1, i, j );
-                
-                 // Draw A Quad
+                 gl.glTranslated(-posX,posY,posZ);
+                 gl.glTranslated(offsetSize-1,i,j);
                  gl.glBegin(GL2.GL_TRIANGLE_FAN);       
-                 gl.glColor3f( 1.0f+pulse, (i/(BoxLoc.dimY+1.0f))+pulse, (j/(BoxLoc.dimZ+1.0f))+pulse );   // set the color of the quad
-                 gl.glVertex3f( 0, -squareSize/2f, squareSize/2f);   // Top Left
-                 gl.glVertex3f( 0, squareSize/2f, squareSize/2f);   // Top Right
-                 gl.glVertex3f( 0, squareSize/2f,-squareSize/2f);   // Bottom Right
-                 gl.glVertex3f( 0, -squareSize/2f,-squareSize/2f);   // Bottom Left
-                 // Done Drawing The Quad
+                 gl.glColor3d(pulse+1,(i/dimY)+pulse,(j/dimZ)+pulse);
+                 gl.glVertex3d(0,-cubeSize,cubeSize);  // Top Left
+                 gl.glVertex3d(0,cubeSize,cubeSize);   // Top Right
+                 gl.glVertex3d(0,cubeSize,-cubeSize);  // Bottom Right
+                 gl.glVertex3d(0,-cubeSize,-cubeSize); // Bottom Left
                  gl.glEnd();
-
          	 }
          }           
-  	 }
+	} catch ( Exception e ) { System.out.println("Exception is: " + e);	}
+	}
 }

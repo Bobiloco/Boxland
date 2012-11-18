@@ -27,23 +27,23 @@ public class BoxLoc {
 	public static final int teamsNumber = 1;
 	public static final int teamSize = 10;
 	public static final int inertsNumber = 40;
-	public static final float dimX = 20; 
-	public static final float dimY = 8; 
-	public static final float dimZ = 10; 
-	public static final float startX = -dimX/2.0f;
-	public static final float startY = ( -dimY/2.0f );
-	public static final float startZ = -dimZ-((dimX+dimY)/2);
+	public static final int dimX = 20; 
+	public static final int dimY = 8; 
+	public static final int dimZ = 10; 
+	public static final double startX = -dimX/2;
+	public static final double startY = -dimY/2;
+	public static final double startZ = -dimZ-((dimX+dimY)/2);
 	
 	// Counters
-	private static int gameSteps = 0;
+	private static int gameSteps    = 0;
 	private static int animateCount = 0;
-	private static float pulse = 0.0f;
+	private static double pulse     = 0;
 	
 	// Memory container arrays
-	private static float teamExpScore[] = new float[teamsNumber];
-	private static float expScore[] = new float[teamsNumber];
-	private static int fedScore[] = new int[teamsNumber];
-	private static int deathScore[] = new int[teamsNumber];
+	private static double teamExpScore[] = new double[teamsNumber];
+	private static double expScore[]     = new double[teamsNumber];
+	private static int fedScore[]        = new int[teamsNumber];
+	private static int deathScore[]      = new int[teamsNumber];
 	private static WorldObject[][][] wobjects;
 	private static Mob theMobs[] = new Mob[teamsNumber * teamSize];
 	private static WorldObject theInerts[] = new WorldObject[inertsNumber];
@@ -192,7 +192,7 @@ public class BoxLoc {
 	    	
 	    		// average and update team values
 	    		for ( int j=0; j<teamsNumber; j++) {
-	    			expScore[j] = (float) expScore[j] / (float) teamSize;
+	    			expScore[j] = (double) expScore[j] / (double) teamSize;
 	    			teamExpScore[j] = teamExpScore[j] + expScore[j];
 	    		}
 	    				
@@ -217,15 +217,15 @@ public class BoxLoc {
 	
 			for ( int j=0; j<teamsNumber; j++) {
 				gl.glLoadIdentity();
-				gl.glTranslatef(-1.5f,1.6f-(0.05f*(float)j) + Boxland.sizeAdjustY,-1.6f);
-		        gl.glColor3f(theMobs[j*teamSize].getBaseR(),theMobs[j*teamSize].getBaseG(),theMobs[j*teamSize].getBaseB());
+				gl.glTranslated(-1.5,1.6-(0.05*j) + Boxland.sizeAdjustY,-1.6);
+		        gl.glColor3d(theMobs[j*teamSize].getBaseR(),theMobs[j*teamSize].getBaseG(),theMobs[j*teamSize].getBaseB());
 		 		gl.glRasterPos2i(0, 0);
 		 		glut.glutBitmapString(GLUT.BITMAP_TIMES_ROMAN_24, "Team# " + (j+1) + " -   Current Food: " + fedScore[j] + "     Deaths: " + deathScore[j] + "     Current Size: " + expScore[j] + "     Avg. Size (x10): " + (int) (teamExpScore[j]/(gameSteps/10)) );
 			}
 			
 			gl.glLoadIdentity();
-			gl.glTranslatef(-1.5f,(1.6f-(0.05f*(float)teamsNumber)) + Boxland.sizeAdjustY,-1.6f);
-	 		gl.glColor3f(1.0f,1.0f,1.0f);
+			gl.glTranslated(-1.5,(1.6-(0.05*teamsNumber)) + Boxland.sizeAdjustY,-1.6);
+	 		gl.glColor3d(1,1,1);
 	 		gl.glRasterPos2i(0, 0);
 	 		glut.glutBitmapString(GLUT.BITMAP_TIMES_ROMAN_24, "Game steps: " + gameSteps );
 		
@@ -246,8 +246,8 @@ public class BoxLoc {
 	        //mob setup stuff 
 	        for ( int j=0; j<teamsNumber; j++) {
 	        	for(int i=teamSize*j; i<teamSize*(j+1); i++) {
-	        		if ( j == 0 ) theMobs[i] = new Mob("Red"   , 1.0f, 0.0f, 0.0f, 1, 1);
-	        		if ( j == 1 ) theMobs[i] = new Mob("Blue"  , 0.0f, 0.0f, 1.0f, 2, 1);
+	        		if ( j == 0 ) theMobs[i] = new Mob("Red"   , 1.0f, 0.0f, 0.0f, 2, 1);
+	        		if ( j == 1 ) theMobs[i] = new Mob("Blue"  , 0.0f, 0.0f, 1.0f, 1, 1);
 	        		if ( j == 2 ) theMobs[i] = new Mob("Yellow" , 1.0f, 1.0f, 0.0f, 1, 3);
 	        		if ( j == 3 ) theMobs[i] = new Mob("Zombie" , 0.0f, 0.3f, 0.05f, 0, 2);
 	        		// make more rows for more teams.. I know....

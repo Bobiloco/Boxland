@@ -21,6 +21,9 @@ public class BoxData {
 	 * Source code under CC BY 3.0 
 	 */
 	
+	private static final String jdbcConn = "jdbc:oracle:thin:@localhost:1521:XE";
+	private static final String jdbcDB   = "terre"; 
+	private static final String jdbcPass = "terrep";
 	private static Connection connection;
 
 	static {
@@ -35,7 +38,7 @@ public class BoxData {
 	static void openConnection() {
     	try {  
         	System.out.println("Connecting to the database..."); 
-        	connection = DriverManager.getConnection( "jdbc:oracle:thin:@localhost:1521:XE", "terre", "terrep");
+        	connection = DriverManager.getConnection(jdbcConn,jdbcDB,jdbcPass);
         } catch (Exception e) {  
             System.out.println("The exception raised is:" + e);  
         }  

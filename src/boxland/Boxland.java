@@ -26,7 +26,7 @@ public class Boxland {
 	 * Uses an oracle database to weigh the decisions of the cube populations
 	 *   so that they become more proficient at staying alive
 	 *   
-	 * OpenGL based on the example by:
+	 * OpenGL structure based on the example by:
 	 * @author Julien Gouesse (http://tuer.sourceforge.net)
 	 * 
 	 * Bernard McManus - 2012
@@ -37,7 +37,7 @@ public class Boxland {
     private final Frame frame;
     private final Animator animator;
     
-    public static final float sizeAdjustY = 9.5f;
+    public static final double sizeAdjustY = 9.5;
 
 	private static final class boxKeyListener extends KeyAdapter {
  
@@ -116,7 +116,6 @@ public class Boxland {
     private Boxland() {
 		BoxData.openConnection();
         BoxData.runProcSql("BEGIN INIT_TABLES(); END;");
-    	
         canvas = new GLCanvas();
         frame = new Frame("Boxland");
         animator = new Animator(canvas);

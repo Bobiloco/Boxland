@@ -145,10 +145,10 @@ public class Mob extends WorldObject {
     public void drawAction() {
     	try {
 	    	// This line adds experience to the draw size
-			setShiftR(getExperience() * 0.05f);
-			setShiftG(getExperience() * 0.05f);
-			setShiftB(getExperience() * 0.05f);
-			setDrawSize(getDrawSize() * ( (float) getFedCount() / 20f ));
+			setShiftR(getExperience() * 0.05);
+			setShiftG(getExperience() * 0.05);
+			setShiftB(getExperience() * 0.05);
+			setDrawSize(getDrawSize()*(double)getFedCount()/20);
     	} catch ( Exception e ) { System.out.println("Exception is: " + e); }		
     }
 
