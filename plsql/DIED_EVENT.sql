@@ -30,6 +30,7 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
   
     INSERT INTO EVENT_LOC ( EVENT_LOC_ID, LOC_X, LOC_Y, LOC_Z )
       SELECT 0, locX, locY, locZ FROM DUAL;
+    COMMIT;
     
     SELECT MAX(event_loc_id) 
       INTO locID
@@ -49,7 +50,8 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
              locID,
              -1 -- Is this right? Should it be a case?
         FROM DUAL;
-      
+    COMMIT;
+    
     SELECT max(EVENT_DECISION_ID) 
       INTO decisionID
       FROM EVENT_DECISION;
@@ -66,12 +68,14 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
                     WHEN 'Starved' THEN -2
            END choice_facing
       FROM DUAL;
-
+  COMMIT;
+  
   -- Create a scoring record that this was bad
   SELECT MAX(event_hist_id) INTO eventID FROM event_hist;
   INSERT INTO event_scoring ( event_hist_id )
       SELECT eventID FROM DUAL;      
-
+  COMMIT;
+  
   -- They only learn that the last n < 49 moves leading to starvation were bad
   IF way = 'Starved' THEN
   
@@ -80,7 +84,8 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
       SELECT event_hist_id
         FROM event_hist_new 
        WHERE obj_id = mobDBID;
-          
+    COMMIT;
+    
   ELSE
    
     -- If a mob is killed, remove the memories from the buffer and event_hist
@@ -89,18 +94,22 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
   
     IF killedID IS NOT NULL THEN
       INSERT INTO EVENT_SCORING ( EVENT_HIST_ID ) SELECT killedID EVENT_HIST_ID FROM DUAL;
+      COMMIT;
     END IF;
      
     FOR delete_event_id in currEvents
     LOOP
       DELETE FROM event_hist_new where event_hist_id = delete_event_id.event_hist_id;
+      COMMIT;
       DELETE FROM event_hist where event_hist_id = delete_event_id.event_hist_id
                                and delete_event_id.event_hist_id <> killedID;
+      COMMIT;
     END LOOP;
   
   END IF;
 
   -- Clears out the new decisions for this jobject
   DELETE FROM event_hist_new WHERE obj_id = mobDBID;
-     
+  COMMIT;
+  
 END DIED_EVENT;
