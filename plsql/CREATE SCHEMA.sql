@@ -1,3 +1,20 @@
+
+/*
+declare
+  cursor c1 is select index_name, tablespace_name FROM user_indexes;
+  cursor c2 is select * from user_tables;
+begin
+  for curse in c1 loop
+    EXECUTE IMMEDIATE 'alter index ' || curse.index_name || ' rebuild tablespace ' || curse.tablespace_name;
+  end loop;
+  DBMS_STATS.GATHER_SCHEMA_STATS('terre');
+  for curse2 in c2 loop
+    EXECUTE IMMEDIATE 'comment on table ' || curse2.table_name || ' is ''''';
+  end loop;
+end;
+/
+*/
+
 /* Install the database tables */
 
 DROP INDEX EVENT_HIST_ECN_IDX;
@@ -173,18 +190,3 @@ CREATE INDEX EVENT_DECISION_IDX ON EVENT_DECISION ( EVENT_DECISION_ID, OBJ_ID, E
 CREATE INDEX EVENT_LOC_IDX ON EVENT_LOC ( EVENT_LOC_ID, LOC_X, LOC_Y, LOC_Z );
 /
  
-/*
-declare
-  cursor c1 is select index_name, tablespace_name FROM user_indexes;
-  cursor c2 is select * from user_tables;
-begin
-  for curse in c1 loop
-    EXECUTE IMMEDIATE 'alter index ' || curse.index_name || ' rebuild tablespace ' || curse.tablespace_name;
-  end loop;
-  DBMS_STATS.GATHER_SCHEMA_STATS('terre');
-  for curse2 in c2 loop
-    EXECUTE IMMEDIATE 'comment on table ' || curse2.table_name || ' is ''''';
-  end loop;
-end;
-/
-*/

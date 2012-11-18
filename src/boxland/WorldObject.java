@@ -6,80 +6,84 @@ public class WorldObject {
 
     public static final float cubeSize = 0.5f;
     
-    public float drawSize;
-    public float growSize = cubeSize / 10.0f;
-    public float growCount = -10;
-    public final int explodeSize = BoxLoc.teamSize * BoxLoc.teamsNumber;
-    public int explodeCount = 0;
-    public String wobId = "Wob";
-    public int wobDBID = -1;
+    private float drawSize;
+    private float growSize = cubeSize / 10.0f;
+    private float growCount = -10;
+    private final int explodeSize = BoxLoc.teamSize * BoxLoc.teamsNumber;
+    private int explodeCount = 0;
+    private String wobId = "Wob";
+    private int wobDBID = -1;
     
 	// mob location
-	public int locX;
-    public int locY;
-    public int locZ;
+	private int locX;
+    private int locY;
+    private int locZ;
     
-    public float offsetX = 0.0f;
-    public float offsetY = 0.0f;
-    public float offsetZ = 0.0f;
+    private float offsetX = 0.0f;
+    private float offsetY = 0.0f;
+    private float offsetZ = 0.0f;
     
-    public float baseR = 0.0f;
-    public float baseG = 0.0f;
-    public float baseB = 0.0f;
+    private float baseR = 0.0f;
+    private float baseG = 0.0f;
+    private float baseB = 0.0f;
     
-    public float shiftR = 0.0f;
-    public float shiftG = 0.0f;
-    public float shiftB = 0.0f;
+    private float shiftR = 0.0f;
+    private float shiftG = 0.0f;
+    private float shiftB = 0.0f;
    
-    public WorldObject(){
-    }
+    public WorldObject(){}
     
     public WorldObject( String wID, float r, float g, float b) {
-    	wobId = wID;
-    	baseR = r;
-    	baseG = g;
-    	baseB = b;
+    	setWobId(wID);
+    	setBaseR(r);
+    	setBaseG(g);
+    	setBaseB(b);
     }
     
-    public void updateXYZ(int x, int y, int z) {
+    public void setXYZ(int x, int y, int z) {
 		locX = x;
 		locY = y;
 		locZ = z;
 	}
 
-	public String getWobID() {
-		// returns the string identifier of the world object
-		return wobId;
-	}
-	
-	public void setWobDBID(int newDBID) {
-		// returns the DBID, if applied
-		wobDBID = newDBID;
-	}
-
-	public int getWobDBID() {
-		// returns the DBID, if applied
-		return wobDBID;
-	}
-    
+    public void setWobDBID(int newDBID) { wobDBID = newDBID; }
+    public String getWobID() { return getWobId(); }
+    public int getWobDBID() { return wobDBID; }
     public int gX() { return locX; }
     public int gY() { return locY; }
     public int gZ() { return locZ; }
+    public float getBaseR() { return baseR; }
+	public void setBaseR(float baseR) {	this.baseR = baseR;	}
+	public float getBaseG() { return baseG;	}
+	public void setBaseG(float baseG) {	this.baseG = baseG;	}
+	public float getBaseB() { return baseB;	}
+	public void setBaseB(float baseB) {	this.baseB = baseB;	}
+	public float getShiftR() { return shiftR; }
+	public void setShiftR(float shiftR) { this.shiftR = shiftR; }
+	public float getShiftG() { return shiftG; }
+	public void setShiftG(float shiftG) { this.shiftG = shiftG; }
+	public float getShiftB() { return shiftB; }
+	public void setShiftB(float shiftB) { this.shiftB = shiftB;	}
     
 	public void eat(WorldObject woEaten) {
-		// Nothing will eat its own type
-		if (woEaten.getWobID() != this.getWobID() ) woEaten.died("Killed");
+		try {
+			// Nothing will eat its own type
+			if (woEaten.getWobID() != this.getWobID() ) woEaten.died("Killed");
+		} catch ( Exception e) {
+			
+		}
 	}
 
 	public void died(String way) {
-
-		growCount = -10;
+		try {
+		setGrowCount(-10);
 		BoxLoc.removeObj(this);
 		BoxLoc.insertObj(this);
+		} catch ( Exception e ) { System.out.println("Exception is: " + e); }
 	}
 
 	public void startAnimate(int facing) {
-		
+		try {
 		// Creates an offset towards the original location 
 		//  that starts counting down ( because they're already in the new location )
 		if ( facing == 2 ) offsetX = -10;
@@ -88,41 +92,45 @@ public class WorldObject {
 		if ( facing == 3 ) offsetY = 10;
 		if ( facing == 6 ) offsetZ = -10;
 		if ( facing == 5 ) offsetZ = 10;
+		} catch ( Exception e ) { System.out.println("Exception is: " + e); }
 	}
 	
 	public void animate() {
-		
-		float offsetStep = ( 10.0f / ( (float) BoxLoc.teamSize * (float) BoxLoc.teamsNumber) );
-		
-		// The sizeMultiple is to track animation frames and scale movement accordingly
-		if ( Math.round(offsetX) > 0 ) offsetX = offsetX - offsetStep;
-		if ( Math.round(offsetX) < 0 ) offsetX = offsetX + offsetStep;
-		if ( Math.round(offsetY) > 0 ) offsetY = offsetY - offsetStep;
-		if ( Math.round(offsetY) < 0 ) offsetY = offsetY + offsetStep;
-		if ( Math.round(offsetZ) > 0 ) offsetZ = offsetZ - offsetStep;
-		if ( Math.round(offsetZ) < 0 ) offsetZ = offsetZ + offsetStep;
-
-		if ( Math.round(growCount) < 0 ) growCount = growCount + offsetStep / 10.0f;
-
-    	if ( explodeCount > 0 ) explodeCount++;
-		if ( explodeCount > explodeSize ) explodeCount = 0;
-		
-		drawSize = cubeSize + ( growCount * growSize ) + ( explodeCount * growSize ) / explodeSize;
+		try {
+			float offsetStep = ( 10.0f / ( (float) BoxLoc.teamSize * (float) BoxLoc.teamsNumber) );
+			
+			// The sizeMultiple is to track animation frames and scale movement accordingly
+			if ( Math.round(offsetX) > 0 ) offsetX = offsetX - offsetStep;
+			if ( Math.round(offsetX) < 0 ) offsetX = offsetX + offsetStep;
+			if ( Math.round(offsetY) > 0 ) offsetY = offsetY - offsetStep;
+			if ( Math.round(offsetY) < 0 ) offsetY = offsetY + offsetStep;
+			if ( Math.round(offsetZ) > 0 ) offsetZ = offsetZ - offsetStep;
+			if ( Math.round(offsetZ) < 0 ) offsetZ = offsetZ + offsetStep;
+	
+			if ( Math.round(getGrowCount()) < 0 ) setGrowCount(getGrowCount() + offsetStep / 10.0f);
+	
+	    	if ( getExplodeCount() > 0 ) setExplodeCount(getExplodeCount() + 1);
+			if ( getExplodeCount() > explodeSize ) setExplodeCount(0);
+			
+			setDrawSize(cubeSize + ( getGrowCount() * growSize ) + ( getExplodeCount() * growSize ) / explodeSize);
+		} catch ( Exception e ) { System.out.println("Exception is: " + e); }
 	}
 	
 	public void drawAction() {};
 	
 	public void drawObj (GL2 gl2) {
-		
-		animate();
-		drawAction();
-		drawObjColour(gl2, (baseR + shiftR) , (baseG + shiftG), (baseB + shiftB));
-
+		try {
+			animate();
+			drawAction();
+			drawObjColour(gl2, (getBaseR() + getShiftR()) , (getBaseG() + getShiftG()), (getBaseB() + getShiftB()));
+		} catch ( Exception e ) {
+			System.out.println("Exception is: " + e);
+		}
 	}
 	
 	public void drawObjColour (GL2 gl2, float red, float green, float blue) {
-
-		float squareSize = drawSize / 2.0f;
+		try {
+		float squareSize = getDrawSize() / 2.0f;
 		
 		final GL2 gl = gl2.getGL().getGL2();
 		
@@ -230,13 +238,43 @@ public class WorldObject {
 	        gl.glVertex3f( drawSize, drawSize, squareSize);   // Top Right
 	        gl.glVertex3f( drawSize,-drawSize, squareSize);   // Bottom Right
 	        gl.glVertex3f(-drawSize,-drawSize, squareSize);   // Bottom Left
-	        /*	        gl.glVertex3f(-WorldObject.cubeSize/3.0f, WorldObject.cubeSize/3.0f, squareSize);   // Top Left
-	        gl.glVertex3f( WorldObject.cubeSize/3.0f, WorldObject.cubeSize/3.0f, squareSize);   // Top Right
-	        gl.glVertex3f( WorldObject.cubeSize/3.0f,-WorldObject.cubeSize/3.0f, squareSize);   // Bottom Right
-	        gl.glVertex3f(-WorldObject.cubeSize/3.0f,-WorldObject.cubeSize/3.0f, squareSize);   // Bottom Left
-	        */
 	        gl.glEnd();
-        
-        }
+        	}	 
+		} catch ( Exception e ) { System.out.println("Exception is: " + e);
+		}
 	}
+
+	public String getWobId() {
+		return wobId;
+	}
+
+	public void setWobId(String wobId) {
+		this.wobId = wobId;
+	}
+
+	public float getGrowCount() {
+		return growCount;
+	}
+
+	public void setGrowCount(float growCount) {
+		this.growCount = growCount;
+	}
+
+	public int getExplodeCount() {
+		return explodeCount;
+	}
+
+	public void setExplodeCount(int explodeCount) {
+		this.explodeCount = explodeCount;
+	}
+
+	public float getDrawSize() {
+		return drawSize;
+	}
+
+	public void setDrawSize(float drawSize) {
+		this.drawSize = drawSize;
+	}
+
+	
 }
