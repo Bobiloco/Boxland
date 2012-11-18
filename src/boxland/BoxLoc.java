@@ -7,6 +7,16 @@ import com.jogamp.opengl.util.gl2.GLUT;
 
 public class BoxLoc {
 
+	/**
+	 * BoxLoc - The simulation environment
+	 * 
+	 * - Creates the space and initialized the mob objects within
+	 * - Also controls movement and collisions and the main game loop
+	 * 
+	 * Bernard McManus, Nov 2012
+	 * Source code under CC BY 3.0 
+	 */
+	
 	//public static final String gameMode = "FindFoodPR";
 	public static final String gameMode = "FindFood";
 	//public static final String gameMode = "Survival";
@@ -192,7 +202,7 @@ public class BoxLoc {
 			theMobs[animateCount].updateMob();
 			animateCount++;
 			
-		    DrawScene.DrawBackground(gl,pulse);
+		    DrawBox.DrawBackground(gl,pulse);
 		    pulse = pulse + 0.1f;
 			
 			// go through the grid and draw any world Objects found

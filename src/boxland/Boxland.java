@@ -20,6 +20,18 @@ import javax.media.opengl.glu.GLU;
 import com.jogamp.opengl.util.Animator;
 
 public class Boxland {
+	
+	/**
+	 * Boxland - Ant Colony Simulator 
+	 * Uses an oracle database to weigh the decisions of the cube populations
+	 *   so that they become more proficient at staying alive
+	 *   
+	 * OpenGL based on the example by:
+	 * @author Julien Gouesse (http://tuer.sourceforge.net)
+	 * 
+	 * Bernard McManus - 2012
+	 * Source code under CC BY 3.0
+	 */
  
     private final GLCanvas canvas;
     private final Frame frame;

@@ -2,8 +2,17 @@ package boxland;
 
 import javax.media.opengl.GL2;
 
-public class DrawScene {
+public class DrawBox {
 
+	/**
+	 * DrawBox - Drawing the inside panels
+	 * 
+	 * - Some OpenGL loops that draw the panels
+	 *  
+	 * Bernard McManus, Nov 2012
+	 * Source code under CC BY 3.0 
+	 */
+	
 	public static void DrawBackground(GL2 gl2, float pulse) {
 		 
 		 final GL2 gl = gl2.getGL().getGL2();

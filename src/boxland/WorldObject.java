@@ -4,7 +4,16 @@ import javax.media.opengl.GL2;
 
 public class WorldObject {
 
-    public static final float cubeSize = 0.5f;
+	/**
+	 * WorldObject - Objects that can be placed in BoxLoc
+	 * 
+	 * - Basic interaction code for objects, handles 'Inerts'
+	 *  
+	 * Bernard McManus, Nov 2012
+	 * Source code under CC BY 3.0 
+	 */
+	
+	public static final float cubeSize = 0.5f;
     
     private float drawSize;
     private float growSize = cubeSize / 10.0f;

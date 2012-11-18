@@ -1,3 +1,11 @@
+/**
+	 * Boxland - Ant Colony Simulator 
+	 * 
+   * Init Tables - clears then populates the needed tables
+	 * 
+	 * Bernard McManus - 2012
+	 * Source code under CC BY 3.0
+	 */
 create or replace 
 PROCEDURE INIT_TABLES AS 
 

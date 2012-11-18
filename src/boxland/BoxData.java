@@ -10,6 +10,17 @@ import java.sql.ResultSet;
 
 public class BoxData {
 
+	/**
+	 * BoxData - Database connection class
+	 *
+	 * - Static class that handles the JDBC connection all the PLSQL calls
+	 * - Should use more prepared procedures as it allows for 
+	 * 		the execution of some pretty generic strings
+	 * 
+	 * Bernard McManus - 2012
+	 * Source code under CC BY 3.0 
+	 */
+	
 	private static Connection connection;
 
 	static {

@@ -2,6 +2,15 @@ package boxland;
 
 public class Mob extends WorldObject {
     
+	/**
+	 * Mob - extending WorldObjects to move and eat
+	 * 
+	 * - handles the choice preparation
+	 *  
+	 * Bernard McManus, Nov 2012
+	 * Source code under CC BY 3.0 
+	 */
+	
 	private int mobEat = 0;
     private int mobCD = 0;
 	public int  getMobCD() { return mobCD; }
