@@ -24,11 +24,11 @@ public class Mob extends WorldObject {
 	public int  getDeathCount() { return deathCount; }
 	public void setDeathCount( int deathCount ) { this.deathCount = deathCount;}
 
-    public Mob( String x, float r, float g, float b) {
+    public Mob( String x, double r, double g, double b) {
     	super(x, r, g, b);
     }
     
-    public Mob( String wID, float r, float g, float b, int i, int j) {
+    public Mob( String wID, double r, double g, double b, int i, int j) {
         	setWobId(wID);
         	mobCD = i;
         	mobEat = j;
@@ -145,10 +145,10 @@ public class Mob extends WorldObject {
     public void drawAction() {
     	try {
 	    	// This line adds experience to the draw size
-			setShiftR(getExperience() * 0.05);
-			setShiftG(getExperience() * 0.05);
-			setShiftB(getExperience() * 0.05);
-			setDrawSize(getDrawSize()*(double)getFedCount()/20);
+			setShiftR(getExperience()*0.05);
+			setShiftG(getExperience()*0.05);
+			setShiftB(getExperience()*0.05);
+			setDrawSize((getDrawSize()/2)*getFedCount()/20);
     	} catch ( Exception e ) { System.out.println("Exception is: " + e); }		
     }
 

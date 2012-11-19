@@ -1,14 +1,17 @@
 create or replace 
-FUNCTION GET_BEST_FACING( mobDBID    IN INT, 
-                          choiceID   IN INT, 
-                          locID      IN INT,
-                          lastFacing IN INT ) 
-RETURN INT 
+FUNCTION GET_BEST_FACING( mobDBID    IN INTEGER, 
+                          choiceID   IN INTEGER, 
+                          locID      IN INTEGER,
+                          lastFacing IN INTEGER ) 
+RETURN INTEGER 
 AS 
 
-retFacing INT;
-objCD     INT;
-objTeam   VARCHAR2(10);
+-- Boxland - Bernard McManus 2012
+-- Get_Best_Facing - counts good and bad memories and returns a decision
+
+retFacing INTEGER;
+objCD     INTEGER;
+objTeam   CHAR(10);
 
 BEGIN
 

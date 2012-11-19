@@ -1,9 +1,12 @@
 create or replace 
-FUNCTION RETURN_LAST_ACTION ( mobDBID IN INT )
-RETURN INT 
+FUNCTION RETURN_LAST_ACTION ( mobDBID IN INTEGER )
+RETURN INTEGER 
 AS 
 
-killedID INT;
+-- Boxland - Bernard McManus 2012
+-- Return_last_action.sql - Creates rows for a decision in the database
+
+killedID INTEGER;
 
 BEGIN
   

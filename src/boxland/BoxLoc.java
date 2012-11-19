@@ -24,7 +24,7 @@ public class BoxLoc {
 	//public static final String gameMode = "FourSpawn";
 	
 	// config variables
-	public static final int teamsNumber = 1;
+	public static final int teamsNumber = 2;
 	public static final int teamSize = 10;
 	public static final int inertsNumber = 40;
 	public static final int dimX = 20; 
@@ -42,8 +42,8 @@ public class BoxLoc {
 	// Memory container arrays
 	private static double teamExpScore[] = new double[teamsNumber];
 	private static double expScore[]     = new double[teamsNumber];
-	private static int fedScore[]        = new int[teamsNumber];
-	private static int deathScore[]      = new int[teamsNumber];
+	private static int fedScore[]   = new int[teamsNumber];
+	private static int deathScore[] = new int[teamsNumber];
 	private static WorldObject[][][] wobjects;
 	private static Mob theMobs[] = new Mob[teamsNumber * teamSize];
 	private static WorldObject theInerts[] = new WorldObject[inertsNumber];
@@ -91,9 +91,9 @@ public class BoxLoc {
 			// try 100 times to places it randomly
 			for (int i=0; i<100; i++) {
 				
-				int randX = random.nextInt((int) dimX);
-				int randY = random.nextInt((int) dimY);
-				int randZ = random.nextInt((int) dimZ);
+				int randX = random.nextInt(dimX);
+				int randY = random.nextInt(dimY);
+				int randZ = random.nextInt(dimZ);
 			
 				//place it against some edge by min/maxing a random coordinate
 				int rand6 = random.nextInt(6);
@@ -109,8 +109,8 @@ public class BoxLoc {
 			
 				if ( gameMode.equals("FourSpawn")) {
 					if ( wo.getWobID().equals("Inert") ) rand6 = 1;
-					if ( wo.getWobID().equals("Red") ) rand6 = 0;
-					if ( wo.getWobID().equals("Blue") ) rand6 = 3;
+					if ( wo.getWobID().equals("Red") )  rand6 = 0;
+					if ( wo.getWobID().equals("Blue") )  rand6 = 3;
 					if ( wo.getWobID().equals("Yellow") ) rand6 = 2;
 					if ( wo.getWobID().equals("Zombie") ) rand6 = 1;
 				}
@@ -123,9 +123,9 @@ public class BoxLoc {
 				if ( rand6 == 0 ) randX = 0;
 				if ( rand6 == 1 ) randY = 0;
 				if ( rand6 == 2 ) randZ = 0;
-				if ( rand6 == 3 ) randX = (int) (dimX-1);
-				if ( rand6 == 4 ) randY = (int) (dimY-1);
-				if ( rand6 == 5 ) randZ = (int) (dimZ-1);
+				if ( rand6 == 3 ) randX = dimX-1;
+				if ( rand6 == 4 ) randY = dimY-1;
+				if ( rand6 == 5 ) randZ = dimZ-1;
 				
 				if ( wobjects[randX][randY][randZ] == null ) { 
 					wobjects[randX][randY][randZ] = wo; 
@@ -145,7 +145,7 @@ public class BoxLoc {
 		try {
 			wobjects[wo.gX()][wo.gY()][wo.gZ()] = null;
 		} catch (Exception e) {
-			System.out.println("Exception is:" + e);
+			System.out.println("Exception is: " + e);
 		}
 	}
 		
@@ -162,8 +162,7 @@ public class BoxLoc {
 	    		// eat them
 	    		wobjects[wo.gX()][wo.gY()][wo.gZ()].eat(wobjects[x][y][z]);
 	    	}
-		} catch ( Exception e) { System.out.println("OutOfBounds");	}
-    	
+		} catch ( Exception e) { System.out.println("OutOfBounds:" + e);	}
 		return false; // no move animation
 	}
 	
@@ -220,7 +219,7 @@ public class BoxLoc {
 				gl.glTranslated(-1.5,1.6-(0.05*j) + Boxland.sizeAdjustY,-1.6);
 		        gl.glColor3d(theMobs[j*teamSize].getBaseR(),theMobs[j*teamSize].getBaseG(),theMobs[j*teamSize].getBaseB());
 		 		gl.glRasterPos2i(0, 0);
-		 		glut.glutBitmapString(GLUT.BITMAP_TIMES_ROMAN_24, "Team# " + (j+1) + " -   Current Food: " + fedScore[j] + "     Deaths: " + deathScore[j] + "     Current Size: " + expScore[j] + "     Avg. Size (x10): " + (int) (teamExpScore[j]/(gameSteps/10)) );
+		 		glut.glutBitmapString(GLUT.BITMAP_TIMES_ROMAN_24, "Team# " + (j+1) + " -   Current Food: " + fedScore[j] + "     Deaths: " + deathScore[j] + "     Current Experience: " + expScore[j] + "     Avg. Size (x10): " + (int) (teamExpScore[j]/(gameSteps/10)) );
 			}
 			
 			gl.glLoadIdentity();
@@ -246,11 +245,10 @@ public class BoxLoc {
 	        //mob setup stuff 
 	        for ( int j=0; j<teamsNumber; j++) {
 	        	for(int i=teamSize*j; i<teamSize*(j+1); i++) {
-	        		if ( j == 0 ) theMobs[i] = new Mob("Red"   , 1.0f, 0.0f, 0.0f, 2, 1);
-	        		if ( j == 1 ) theMobs[i] = new Mob("Blue"  , 0.0f, 0.0f, 1.0f, 1, 1);
-	        		if ( j == 2 ) theMobs[i] = new Mob("Yellow" , 1.0f, 1.0f, 0.0f, 1, 3);
-	        		if ( j == 3 ) theMobs[i] = new Mob("Zombie" , 0.0f, 0.3f, 0.05f, 0, 2);
-	        		// make more rows for more teams.. I know....
+	        		if ( j == 0 ) theMobs[i] = new Mob("Red"   ,1,0,0,2,1);
+	        		if ( j == 1 ) theMobs[i] = new Mob("Blue"  ,0,0,1,3,1);
+	        		if ( j == 2 ) theMobs[i] = new Mob("Yellow",1,1,0,1,3);
+	        		if ( j == 3 ) theMobs[i] = new Mob("Zombie",0,0,0.5,0,2);
 	
 	        		// create mobs in database, set the wobDBID and insert into the matrix
 	        		BoxData.runInsertSql( "INSERT INTO OBJ ( OBJ_ID, OBJ_CD, OBJ_TEAM ) SELECT 0, " + theMobs[i].getMobCD() + ", '" + theMobs[i].getWobID() + "' FROM DUAL" );
@@ -262,7 +260,7 @@ public class BoxLoc {
 	    	
 	    	// create the inerts and place.
 	        for(int i=0; i<inertsNumber; i++) {
-	    		theInerts[i] = new WorldObject("Inert", 0.0f, 0.3f, 0.0f);    		
+	    		theInerts[i] = new WorldObject("Inert",0.0,0.3,0.0);    		
 	    		insertObj(theInerts[i]) ;
 	        }
 	        
@@ -270,7 +268,7 @@ public class BoxLoc {
 	   		for(int j=0; j<teamsNumber; j++) {
 	   			teamExpScore[j] = 0;
 	   		}
-		
+
 		} catch ( Exception e ) { System.out.println("Exception is BoxLoc.static: " + e ); }
 	}
 }

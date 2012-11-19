@@ -1,9 +1,11 @@
-create or replace 
-FUNCTION RETURN_LOC_MATCH ( locX IN INT, locY in INT, locZ IN INT )
-RETURN INT
+CREATE OR REPLACE
+FUNCTION RETURN_LOC_MATCH ( locX IN INTEGER, 
+                            locY IN INTEGER, 
+                            locZ IN INTEGER )
+RETURN INTEGER
 AS 
 
-locID INT;
+locID INTEGER;
 
 BEGIN
 

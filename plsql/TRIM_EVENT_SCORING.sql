@@ -9,11 +9,12 @@
 create or replace 
 PROCEDURE TRIM_EVENT_SCORING AS 
 
-maxRow INT;
+maxRow INTEGER;
 
 BEGIN
   
-  SELECT MAX(EVENT_HIST_ID) INTO maxRow FROM EVENT_HIST;
+  maxRow := event_hist_seq.currval;
+  -- SELECT MAX(EVENT_HIST_ID) INTO maxRow FROM EVENT_HIST;
 
   -- They only remember the last 10k actions made, which should be less actual bad choices? maybe?
   DELETE FROM EVENT_SCORING WHERE EVENT_HIST_ID < ( maxRow - 6000 );

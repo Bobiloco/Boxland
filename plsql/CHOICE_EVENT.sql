@@ -1,25 +1,28 @@
 create or replace 
-FUNCTION CHOICE_EVENT( mobDBID IN INT,
-                                  locX IN INT,
-                                  locY IN INT,
-                                  locZ IN INT,
-                                  target0 IN VARCHAR,
-                                  target1 IN VARCHAR,
-                                  target2 IN VARCHAR,
-                                  target3 IN VARCHAR,
-                                  target4 IN VARCHAR,
-                                  target5 IN VARCHAR,
-                                  target6 IN VARCHAR ) 
-  RETURN INT
+FUNCTION CHOICE_EVENT( mobDBID IN INTEGER,
+                        locX IN INTEGER,
+                        locY IN INTEGER,
+                        locZ IN INTEGER,
+                        target0 IN CHAR,
+                        target1 IN CHAR,
+                        target2 IN CHAR,
+                        target3 IN CHAR,
+                        target4 IN CHAR,
+                        target5 IN CHAR,
+                        target6 IN CHAR ) 
+  RETURN INTEGER
   AS 
 
-  eventID INT;
-  decisionID INT;
-  locID INT;
-  choiceID INT;
-  facingID INT;
-  mobTeam VARCHAR2(10);
-  lastFacing INT;
+-- Boxland - Bernard McManus 2012
+-- Choice_Event.sql - Creates rows for a decision in the database
+
+  eventID     INTEGER;
+  decisionID  INTEGER;
+  locID       INTEGER;
+  choiceID    INTEGER;
+  facingID    INTEGER;
+  mobTeam     CHAR(10);
+  lastFacing  INTEGER;
   
   BEGIN
 
@@ -32,9 +35,8 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
         SELECT 0, nvl(target0,' '), nvl(target1,' '), nvl(target2,' '), nvl(target3,' '), nvl(target4,' '), nvl(target5,' '), nvl(target6,' ')
           FROM dual;
       
-        SELECT max(event_choice_id)
-          INTO choiceID
-          FROM event_choice_node;
+        --SELECT max(event_choice_id) INTO choiceID FROM event_choice_node;
+        choiceID := event_choice_seq.currval;
 
         -- Create all the applicable rows in EVENT_CHOICE
         -- This is ugly now that I've pulled the xyz... still works, though
@@ -71,9 +73,8 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
     INSERT INTO EVENT_LOC ( EVENT_LOC_ID, LOC_X, LOC_Y, LOC_Z )
       SELECT 0, locX, locY, locZ FROM DUAL;
     
-    SELECT MAX(event_loc_id) 
-      INTO locID
-      FROM EVENT_LOC;
+    locID := event_loc_seq.currval;
+    -- SELECT MAX(event_loc_id) INTO locID FROM EVENT_LOC;
   
   END IF;
   
@@ -106,25 +107,19 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
   
   -- See if that mob has made a similar decision
   decisionID := return_decision_match(mobDBID, choiceID, locID, lastFacing);       
-  IF decisionID IS NULL
-    THEN
+  IF decisionID IS NULL THEN
       -- insert new decision
       INSERT INTO event_decision ( event_decision_id, obj_id, event_choice_id, event_loc_id, last_facing ) 
           SELECT 0, mobDBID, choiceID, locID, lastFacing FROM DUAL;
-      
-      SELECT MAX(event_decision_id)
-        INTO decisionID
-        FROM event_decision;
-
+      decisionID := event_decision_seq.currval;
+      -- SELECT MAX(event_decision_id) INTO decisionID FROM event_decision;
    END IF;
 
   -- insert event with choice taken
   INSERT INTO EVENT_HIST ( EVENT_HIST_ID, EVENT_DECISION_ID, EVENT_TYPE, CHOICE_FACING ) 
       SELECT 0, decisionID, mobTeam, facingID FROM DUAL;
-
-  SELECT MAX(event_hist_id)
-    INTO eventID
-    FROM event_hist;
+  eventID := event_hist_seq.currval;
+  -- SELECT MAX(event_hist_id) INTO eventID FROM event_hist;
   
   INSERT INTO EVENT_HIST_NEW ( obj_id, event_hist_id )
     SELECT mobDBID, eventID FROM DUAL;
@@ -141,7 +136,9 @@ FUNCTION CHOICE_EVENT( mobDBID IN INT,
       INTO eventID
       FROM event_hist_new
      WHERE obj_id = mobDBID;
-     
+    
+    -- By deleting this memory from the buffer with no _scoring record, 
+    --  it is saved as a good memory - a choice from that position that lead to survival
     DELETE FROM event_hist_new WHERE event_hist_id = eventID;
 
   END IF;

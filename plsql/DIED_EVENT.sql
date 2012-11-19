@@ -1,19 +1,26 @@
-create or replace 
-PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT, locZ IN INT ) 
+CREATE OR REPLACE
+PROCEDURE DIED_EVENT( mobDBID IN INTEGER, 
+                          way IN CHAR, 
+                         locX IN INTEGER, 
+                         locY IN INTEGER, 
+                         locZ IN INTEGER ) 
   AS 
 
-  eventID INT;
-  decisionID INT;
-  locID INT;
-  choiceID INT;
-  killedID INT;
+-- Boxland - Bernard McManus 2012
+-- Died_Event - Deals with the memory buffer of the dead mob
+
+  eventID    INTEGER;
+  decisionID INTEGER;
+  locID      INTEGER;
+  choiceID   INTEGER;
+  killedID   INTEGER;
    
    -- The current events under consideration for this mob
-   cursor currEvents is
-   select event_hist_id
-     from event_hist_new
-     where obj_id = mobDBID
-    order by event_hist_id;
+   CURSOR currEvents is
+   SELECT event_hist_id
+     FROM event_hist_new
+    WHERE obj_id = mobDBID
+    ORDER BY event_hist_id;
   
   BEGIN
 
@@ -32,9 +39,8 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
       SELECT 0, locX, locY, locZ FROM DUAL;
     COMMIT;
     
-    SELECT MAX(event_loc_id) 
-      INTO locID
-      FROM EVENT_LOC;
+    locID := event_loc_seq.currval;
+    -- SELECT MAX(event_loc_id) INTO locID FROM EVENT_LOC;
   
   END IF;
   
@@ -50,11 +56,9 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
              locID,
              -1 -- Is this right? Should it be a case?
         FROM DUAL;
-    COMMIT;
     
-    SELECT max(EVENT_DECISION_ID) 
-      INTO decisionID
-      FROM EVENT_DECISION;
+    decisionID := event_decision_seq.currval;
+    -- SELECT max(EVENT_DECISION_ID) INTO decisionID FROM EVENT_DECISION;
 
   END IF;
   
@@ -68,13 +72,11 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
                     WHEN 'Starved' THEN -2
            END choice_facing
       FROM DUAL;
-  COMMIT;
   
   -- Create a scoring record that this was bad
   SELECT MAX(event_hist_id) INTO eventID FROM event_hist;
   INSERT INTO event_scoring ( event_hist_id )
       SELECT eventID FROM DUAL;      
-  COMMIT;
   
   -- They only learn that the last n < 49 moves leading to starvation were bad
   IF way = 'Starved' THEN
@@ -84,7 +86,6 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
       SELECT event_hist_id
         FROM event_hist_new 
        WHERE obj_id = mobDBID;
-    COMMIT;
     
   ELSE
    
@@ -94,22 +95,18 @@ PROCEDURE DIED_EVENT( mobDBID IN INT, way IN VARCHAR2, locX IN INT, locY in INT,
   
     IF killedID IS NOT NULL THEN
       INSERT INTO EVENT_SCORING ( EVENT_HIST_ID ) SELECT killedID EVENT_HIST_ID FROM DUAL;
-      COMMIT;
     END IF;
      
     FOR delete_event_id in currEvents
     LOOP
       DELETE FROM event_hist_new where event_hist_id = delete_event_id.event_hist_id;
-      COMMIT;
       DELETE FROM event_hist where event_hist_id = delete_event_id.event_hist_id
                                and delete_event_id.event_hist_id <> killedID;
-      COMMIT;
     END LOOP;
   
   END IF;
 
   -- Clears out the new decisions for this jobject
   DELETE FROM event_hist_new WHERE obj_id = mobDBID;
-  COMMIT;
   
 END DIED_EVENT;
