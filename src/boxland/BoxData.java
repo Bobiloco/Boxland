@@ -26,43 +26,53 @@ public class BoxData {
 	private static final String jdbcPass = "terrep";
 	private static Connection connection;
 
+	// set up the database connection using registerDriver
 	static {
-		// set up the database connection
-        try {
+
+		try {
         	DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-		} catch (SQLException e) {
-			System.out.println("The exception raised is:" + e);
+
+        } catch (SQLException e) {
+			System.out.println("BoxData.registerDriver(): " + e);
 		}
 	}
 	
 	static void openConnection() {
-    	try {  
+
+		try {  
         	System.out.println("Connecting to the database..."); 
         	connection = DriverManager.getConnection(jdbcConn,jdbcDB,jdbcPass);
-        } catch (Exception e) {  
-            System.out.println("The exception raised is:" + e);  
+
+        	System.out.println("Connection Opened");
+        	
+		} catch (Exception e) {  
+            System.out.println("BoxData.openConnection(): " + e);  
         }  
-    	System.out.println("Connection Opened");
     }
     
     static void closeConnection() {
-        try {
+
+    	try {
         	System.out.println("Disconnecting from the database...");
         	connection.close();
-		} catch (Exception e) {
-			System.out.println("The exception raised is:" + e);
+
+            System.out.println("Connection Closed");        	
+        	
+        } catch (Exception e) {
+			System.out.println("BoxData.closeConnection(): " + e);
 		}
-        System.out.println("Connection Closed");
     }
     
-    // This is really for non-SELECT statements
+    // This is for non-SELECT statements
     static void runInsertSql(String statementSQL) {
-        try {
+
+    	try {
         	Statement statement = connection.createStatement();
         	statement.execute(statementSQL);
         	statement.close();
+
         } catch (Exception e) {
-			System.out.println("The exception raised is:" + e);
+			System.out.println("BoxData.runInsertSql(): " + e);
 		}
 	}
     
@@ -80,30 +90,12 @@ public class BoxData {
         	return s;
         	
         } catch (Exception e) {
-			System.out.println("The exception raised is:" + e);
+			System.out.println("BoxData.runSelectINTSql(): " + e);
 			return -1;
 		}
     }
     
- // For select statements that return an integer value
- /*   public static String runSelectVarcharSql(String statementSQL) {
-        
-        try {
-        	Statement statement = connection.createStatement();
-        	ResultSet resultset = statement.executeQuery(statementSQL);
-        	resultset.next(); 
-        	String s = resultset.getString(1);
-        	resultset.close();
-        	statement.close();
-        	
-        	return s;
-        	
-        } catch (Exception e) {
-			System.out.println("The exception raised is:" + e);
-			return null;
-		}
-    } */
-    
+    // Prepares the dynamic SQL statemend for a Choice event    
     public static int runChoiceEvent(String procSQL, int mobDBID, int locX, int locY, int locZ, String faceToken, String faceToken2, String faceToken3, String faceToken4, String faceToken5, String faceToken6, String faceToken7) {
         
         int result = 0;
@@ -128,11 +120,12 @@ public class BoxData {
         	callStmt.close();
         	
         } catch (Exception e) {
-			System.out.println("The exception raised is:" + e);
+			System.out.println("BoxData.runChoiceEvent(): " + e);
 		}
-		return result;
+    	return result;
     }
     
+    // Prepares the dynamic SQL for a Died event
     public static void runDiedEvent(String procSQL, int mobDBID, String way, int locX, int locY, int locZ ) {
     	try {
         	CallableStatement callStmt = connection.prepareCall(procSQL);
@@ -144,10 +137,11 @@ public class BoxData {
         	callStmt.execute();
         	callStmt.close();
         } catch (Exception e) {
-			System.out.println("The exception raised is:" + e);
+			System.out.println("BoxData.runDiedEvent(): " + e);
 		}
     }
     
+    // Runs procedures in the database 
     public static void runProcSql(String procSQL) {
         try {
         	CallableStatement callStmt = connection.prepareCall(procSQL);
@@ -155,7 +149,7 @@ public class BoxData {
         	callStmt.close();
         	
         } catch (Exception e) {
-			System.out.println("The exception raised is:" + e);
+			System.out.println("BoxData.runProcSql(): " + e);
 		}
     }
 

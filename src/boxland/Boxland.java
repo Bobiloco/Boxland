@@ -39,7 +39,8 @@ public class Boxland {
     
     public static final double sizeAdjustY = 9.5;
 
-	private static final class boxKeyListener extends KeyAdapter {
+    // KeyAdapter will look for escape keypress	
+    private static final class boxKeyListener extends KeyAdapter {
  
         private final Boxland box;
  
@@ -141,12 +142,13 @@ public class Boxland {
 	        frame.dispose();
 	        System.exit(0);
     	} catch ( Exception e) {
-    		System.out.println("Exception is: " + e);
+    		System.out.println("Boxland.exit(): " + e);
     	}
 	}
  
     public static void main(String[] args) {
-        // AWT methods have to be invoked on the AWT EDT
+
+    	// AWT methods have to be invoked on the AWT EDT
         EventQueue.invokeLater(new Runnable() {
  
             @Override

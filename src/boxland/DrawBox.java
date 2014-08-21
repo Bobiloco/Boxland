@@ -46,6 +46,7 @@ public class DrawBox {
                  gl.glEnd();
      		}
          } 
+         
          // x and z - bottom
          for(int i=0; i<BoxLoc.dimX; i++){
          	for(int j=0; j<BoxLoc.dimZ; j++){
@@ -61,6 +62,7 @@ public class DrawBox {
                  gl.glEnd();
          	}
          } 
+
          // x and z ( top )
          for(int i=0; i<BoxLoc.dimX; i++){
          	for(int j=0; j<BoxLoc.dimZ; j++){
@@ -76,6 +78,7 @@ public class DrawBox {
                  gl.glEnd();
          	}
         } 
+
          // y an z ( left )
          for(int i=0; i<BoxLoc.dimY; i++){
          	for(int j=0; j<BoxLoc.dimZ; j++){
@@ -91,7 +94,8 @@ public class DrawBox {
                  gl.glEnd();
         	}
          }           
-      // y an z ( right )
+
+         // y an z ( right )
          for(int i=0; i<BoxLoc.dimY; i++){
          	for(int j=0; j<BoxLoc.dimZ; j++){
                  gl.glLoadIdentity();
@@ -106,6 +110,6 @@ public class DrawBox {
                  gl.glEnd();
          	 }
          }           
-	} catch ( Exception e ) { System.out.println("Exception is: " + e);	}
+	} catch ( Exception e ) { System.out.println("DrawBox.DrawBackground(): " + e);	}
 	}
 }

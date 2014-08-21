@@ -1,30 +1,36 @@
 create or replace 
-FUNCTION GET_BEST_FACING( mobDBID    IN INTEGER, 
-                          choiceID   IN INTEGER, 
-                          locID      IN INTEGER,
-                          lastFacing IN INTEGER ) 
+FUNCTION GET_BEST_MOVE( decisionID IN INTEGER ) 
 RETURN INTEGER 
 AS 
 
 -- Boxland - Bernard McManus 2012
--- Get_Best_Facing - counts good and bad memories and returns a decision
+-- Get_Best_Move - counts good and bad memories and returns
+--                  a decision for 'Vacant' and 'Self' choices at choiceID
 
 retFacing INTEGER;
 objCD     INTEGER;
 objTeam   CHAR(10);
+mobDBID   INTEGER;
+choiceID  INTEGER;
+locID     INTEGER;
+lastFacing INTEGER;
 
 BEGIN
 
-   SELECT obj_team
-     INTO objTeam
-     FROM obj
-    WHERE obj_id = mobDBID;
+   SELECT obj_id INTO mobDBID FROM event_decision WHERE event_decision_id = decisionID;
+   SELECT event_choice_id INTO choiceID FROM event_decision WHERE event_decision_id = decisionID;
+   SELECT event_loc_id INTO locID FROM event_decision WHERE event_decision_id = decisionID;
+   SELECT last_facing INTO lastFacing FROM event_decision WHERE event_decision_id = decisionID;
+   SELECT obj_team INTO objTeam FROM obj WHERE obj_id = mobDBID;
 
    SELECT obj_cd
      INTO objCD
      FROM obj
     WHERE obj_id = mobDBID;
     
+   -- Check if an event is an obvious choice
+
+
 -- This is the outer select for the best facing choice, rownum = 1 with ties randomized
 SELECT choice_facing
   INTO retFacing 
@@ -38,9 +44,8 @@ SELECT choice_facing
     select ec.choice_facing, 
            CASE objCD 
              WHEN 0 THEN dbms_random.value()
-             WHEN 1 THEN 4 * NVL(eventType.pct,1) + NVL(choiceDir.pct,0) + NVL(eventLoc.pct,0) + NVL(choiceFacing.pct,0) + NVL(lastFace.pct,0)
-             WHEN 2 THEN NVL(eventType.pct,1)
-                       + CASE WHEN ( NVL(choiceDir.sumpos,0) <> 0 ) AND ( NVL(choiceDir.sumpct,0) <> 0 ) 
+             WHEN 1 THEN NVL(choiceDir.pct,0) + NVL(eventLoc.pct,0) + NVL(choiceFacing.pct,0) + NVL(lastFace.pct,0)
+             WHEN 2 THEN CASE WHEN ( NVL(choiceDir.sumpos,0) <> 0 ) AND ( NVL(choiceDir.sumpct,0) <> 0 ) 
                               THEN ( NVL(choiceDir.pos,0) * NVL(choiceDir.pct,0) ) / ( NVL(choiceDir.sumpos,0) * NVL(choiceDir.sumpct,0) ) 
                               ELSE 0 END
                        + CASE WHEN ( NVL(eventLoc.sumpos,0) <> 0 ) AND ( NVL(eventLoc.sumpct,0) <> 0 ) 
@@ -52,8 +57,7 @@ SELECT choice_facing
                        + CASE WHEN ( NVL(lastFace.sumpos,0) <> 0 ) AND ( NVL(lastface.sumpct,0) <> 0 ) 
                               THEN ( NVL(lastFace.pos,0) * NVL(lastFace.pct,0) ) / ( NVL(lastFace.sumpos,0) * NVL(lastFace.sumpct,0) )
                               ELSE 0 END
-             WHEN 3 THEN NVL(eventType.pct,1)
-                       + CASE WHEN ( NVL(choiceDir.sumpos,0) <> 0 ) AND ( NVL(choiceDir.sumpct,0) <> 0 ) 
+             WHEN 3 THEN CASE WHEN ( NVL(choiceDir.sumpos,0) <> 0 ) AND ( NVL(choiceDir.sumpct,0) <> 0 ) 
                               THEN ( NVL(choiceDir.pos,0) * NVL(choiceDir.pct,0) ) / ( NVL(choiceDir.sumpos,0) * NVL(choiceDir.sumpct,0) ) 
                                       * NVL(choiceDir.sumpos,0) / ( NVL(choiceDir.sumpos,0) + NVL(eventLoc.sumpos,0) + NVL(choiceFacing.sumpos,0) + NVL(lastFace.sumpos,0) )
                               ELSE 0 END
@@ -69,8 +73,7 @@ SELECT choice_facing
                               THEN ( NVL(lastFace.pos,0) * NVL(lastFace.pct,0) ) / ( NVL(lastFace.sumpos,0) * NVL(lastFace.sumpct,0) )
                                       * NVL(lastFace.sumpos,0) / ( NVL(choiceDir.sumpos,0) + NVL(eventLoc.sumpos,0) + NVL(choiceFacing.sumpos,0) + NVL(lastFace.sumpos,0) )
                               ELSE 0 END
-             WHEN 4 THEN NVL(eventType.pct,1)
-                       + CASE WHEN ( NVL(choiceDir.sumpos,0) <> 0 ) AND ( NVL(choiceDir.sumpct,0) <> 0 ) 
+             WHEN 4 THEN CASE WHEN ( NVL(choiceDir.sumpos,0) <> 0 ) AND ( NVL(choiceDir.sumpct,0) <> 0 ) 
                               THEN ( NVL(choiceDir.pos,0) * NVL(choiceDir.pct,0) ) / ( NVL(choiceDir.sumpos,0) * NVL(choiceDir.sumpct,0) ) 
                                       * ( NVL(choiceDir.sumpos,0) + NVL(eventLoc.sumpos,0) + NVL(choiceFacing.sumpos,0) + NVL(lastFace.sumpos,0) ) - NVL(choiceDir.sumpos,0) 
                                       / ( NVL(choiceDir.sumpos,0) + NVL(eventLoc.sumpos,0) + NVL(choiceFacing.sumpos,0) + NVL(lastFace.sumpos,0) )
@@ -90,30 +93,8 @@ SELECT choice_facing
                                       * ( NVL(choiceDir.sumpos,0) + NVL(eventLoc.sumpos,0) + NVL(choiceFacing.sumpos,0) + NVL(lastFace.sumpos,0) ) - NVL(lastFace.sumpos,0) 
                                       / ( NVL(choiceDir.sumpos,0) + NVL(eventLoc.sumpos,0) + NVL(choiceFacing.sumpos,0) + NVL(lastFace.sumpos,0) )
                               ELSE 0 END
-
            END score
         from event_choice ec
-        left join ( -- BY EVENT - TYPE
-                    select event_type, pos, pct, 
-                           sum(pos) over (partition by ' ') sumpos, 
-                           sum(pct) over (partition by ' ') sumpct
-                     from                   
-                  (  select eh.event_type, 
-                            COUNT(eh.event_hist_id) - COUNT(ehn.event_hist_id) - COUNT(es.event_hist_id ) pos,
-                            CASE WHEN COUNT(eh.event_hist_id) - COUNT(ehn.event_hist_id) = 0 THEN 0 
-                                 ELSE ( ( COUNT(eh.event_hist_id) - COUNT(ehn.event_hist_id) ) - COUNT(es.event_hist_id ) ) / ( COUNT(eh.event_hist_id) - COUNT(ehn.event_hist_id) )  
-                            END pct
-                     from event_hist eh
-                     join event_decision ed on eh.event_decision_id = ed.event_decision_id
-                     join obj o on ed.obj_id  = o.obj_id 
-                               and o.obj_team = objTeam
-                     left join event_scoring es on eh.event_hist_id = es.event_hist_id
-                     left join event_hist_new ehn on eh.event_hist_id = ehn.event_hist_id
-                    where eh.event_type in ( select choice_target from event_choice where event_choice_id = choiceID group by choice_target ) -- for proper sums in the parent query
-                    group by eh.event_type
-                  ) eventT
-                  ) eventType
-        ON ec.choice_target = eventType.event_type
       left join ( -- BY Direction
                   select choice_facing, pos, pct, 
                          sum(pos) over (partition by ' ') sumpos, 
@@ -130,7 +111,10 @@ SELECT choice_facing
                                and o.obj_team = objTeam
                      left join event_scoring es on eh.event_hist_id = es.event_hist_id
                      left join event_hist_new ehn on eh.event_hist_id = ehn.event_hist_id
-                    where eh.choice_facing in ( select choice_facing from event_choice where event_choice_id = choiceID ) -- for proper sums in the parent query                     
+                    where eh.choice_facing in ( select choice_facing 
+                                                  from event_choice 
+                                                   and event_choice_id = choiceID ) -- for proper sums in the parent query                     
+                      and eh.event_type in ('Vacant','Self')
                     group by eh.choice_facing 
                  ) choiceD
                  ) choiceDir
@@ -152,17 +136,20 @@ SELECT choice_facing
                                and o.obj_team = objTeam
                      left join event_scoring es on eh.event_hist_id = es.event_hist_id
                      left join event_hist_new ehn on eh.event_hist_id = ehn.event_hist_id
-                    where eh.choice_facing in ( select choice_facing from event_choice where event_choice_id = choiceID ) -- for proper sums in the parent query
+                    where eh.choice_facing in ( select choice_facing 
+                                                  from event_choice 
+                                                   and event_choice_id = choiceID ) -- for proper sums in the parent query                     
+                      and eh.event_type in ('Vacant','Self')
                     group by eh.choice_facing
                 ) lastF
                 ) lastFace
          ON ec.choice_facing = lastFace.choice_facing
        left join ( -- BY CHOICE - FACING
                    select choice_facing, pos, pct, 
-                        sum(pos) over (partition by ' ') sumpos, 
-                        sum(pct) over (partition by ' ') sumpct
-                  from                   
-                (  select eh.choice_facing, 
+                        sum(pos) over (PARTITION BY ' ') sumpos, 
+                        sum(pct) over (PARTITION BY ' ') sumpct
+                  FROM                   
+                (  SELECT eh.choice_facing, 
                           COUNT(eh.event_hist_id) - COUNT(ehn.event_hist_id) - COUNT(es.event_hist_id ) pos,
                           CASE WHEN count(eh.event_hist_id) - count(ehn.event_hist_id) = 0 THEN 0 
                                ELSE ( ( count(eh.event_hist_id) - count(ehn.event_hist_id) ) - count(es.event_hist_id ) ) / ( count(eh.event_hist_id) - count(ehn.event_hist_id) )  
@@ -170,11 +157,12 @@ SELECT choice_facing
                      FROM event_hist eh
                      JOIN event_decision ed ON eh.event_decision_id = ed.event_decision_id
                                            AND ed.event_choice_id   = choiceID  -- this should take care of the sums in the parent query
-                     JOIN obj o on ed.obj_id = o.obj_id 
-                               and o.obj_team = objTeam
-                    left JOIN event_scoring es on eh.event_hist_id = es.event_hist_id
-                    left JOIN event_hist_new ehn on eh.event_hist_id = ehn.event_hist_id
-                    GROUP by eh.choice_facing
+                     JOIN obj o ON ed.obj_id = o.obj_id 
+                               AND o.obj_team = objTeam
+                    LEFT JOIN event_scoring es ON eh.event_hist_id = es.event_hist_id
+                    LEFT JOIN event_hist_new ehn ON eh.event_hist_id = ehn.event_hist_id
+                   WHERE eh.event_type IN ( 'Vacant','Self' )
+                   GROUP by eh.choice_facing
                 ) choiceF
                 ) choiceFacing
         on ec.choice_facing   = choiceFacing.choice_facing
@@ -195,6 +183,7 @@ SELECT choice_facing
                              and o.obj_team = objTeam
                    left join event_scoring es on eh.event_hist_id = es.event_hist_id
                    left join event_hist_new ehn on eh.event_hist_id = ehn.event_hist_id
+                   WHERE eh.event_type IN ( 'Vacant','Self' )
                   group by eh.choice_facing
                  ) eventL
                  ) eventLoc
@@ -213,4 +202,4 @@ SELECT choice_facing
   
   THEN RETURN NULL;
   
-END GET_BEST_FACING;
+END GET_BEST_MOVE;

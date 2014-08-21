@@ -37,7 +37,8 @@ public class Mob extends WorldObject {
         	setBaseB(b);
     }
     
-	public void updateMob() {
+	// Main Ai proceedure
+    public void updateMob() {
 		try { 
 	    	String[] faceToken;
 	    	faceToken = new String[7];
@@ -107,7 +108,7 @@ public class Mob extends WorldObject {
 	            if ( BoxLoc.moveObj(this,dirX,dirY,dirZ) ) startAnimate(facing);
 	    	}
 
-		} catch ( Exception e ) { System.out.println("Exception is: " + e); }
+		} catch ( Exception e ) { System.out.println("Mob.UpdateMob(): " + e); }
     }
     
 	public void died(String way) {
@@ -121,7 +122,7 @@ public class Mob extends WorldObject {
 	    	BoxData.runDiedEvent("{ call died_event( ?,?,?,?,? )}", getWobDBID(), way, gX(), gY(), gZ() );
 	    	BoxLoc.removeObj(this);
 	    	BoxLoc.insertObj(this);
-		} catch ( Exception e ) { System.out.println("Exception is: " + e); }
+		} catch ( Exception e ) { System.out.println("Mob.died(): " + e); }
 	}
     
 	public void eat(WorldObject woEaten) {
@@ -139,7 +140,8 @@ public class Mob extends WorldObject {
 	        	setFedCount(50);
 	        	woEaten.died("Killed");	
 	        };
-		} catch ( Exception e ) { System.out.println("Exception is: " + e); }
+
+		} catch ( Exception e ) { System.out.println("Mob.Eat(): " + e); }
 	}
 	
     public void drawAction() {
@@ -149,7 +151,8 @@ public class Mob extends WorldObject {
 			setShiftG(getExperience()*0.05);
 			setShiftB(getExperience()*0.05);
 			setDrawSize((getDrawSize()/2)*getFedCount()/20);
-    	} catch ( Exception e ) { System.out.println("Exception is: " + e); }		
+
+    	} catch ( Exception e ) { System.out.println("Mob.drawAction(): " + e); }		
     }
 
 }

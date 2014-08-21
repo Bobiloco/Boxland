@@ -76,15 +76,18 @@ public class WorldObject {
 	public void eat(WorldObject woEaten) {
 		try { // Nothing will eat its own type
 			if (woEaten.getWobID() != this.getWobID() ) woEaten.died("Killed");
-		} catch ( Exception e) { System.out.println("Exception is: " + e); }
+
+		} catch ( Exception e) { System.out.println("WorldObject.eat(): " + e); }
 	}
 
 	public void died(String way) {
+
 		try {
 			setGrowCount(-10);
 			BoxLoc.removeObj(this);
 			BoxLoc.insertObj(this);
-		} catch ( Exception e ) { System.out.println("Exception is: " + e); }
+
+		} catch ( Exception e ) { System.out.println("WorldObject.died(): " + e); }
 	}
 
 	public void startAnimate(int facing) {
@@ -96,7 +99,7 @@ public class WorldObject {
 			if ( facing == 3 ) offsetY = 10;
 			if ( facing == 6 ) offsetZ = -10;
 			if ( facing == 5 ) offsetZ = 10;
-		} catch ( Exception e ) { System.out.println("Exception is: " + e); }
+		} catch ( Exception e ) { System.out.println("WorldObject.startAnimate(): " + e); }
 	}
 	
 	public void animate() {
@@ -117,7 +120,7 @@ public class WorldObject {
 			if ( getExplodeCount() > explodeSize ) setExplodeCount(0);
 			
 			setDrawSize(cubeSize + ( getGrowCount() * growSize ) + ( getExplodeCount() * growSize ) / explodeSize);
-		} catch ( Exception e ) { System.out.println("Exception is: " + e); }
+		} catch ( Exception e ) { System.out.println("WorldObject.animate(): " + e); }
 	}
 	
 	public void drawAction() {};
@@ -130,7 +133,7 @@ public class WorldObject {
 					          (getBaseG()+getShiftG()), 
 					          (getBaseB()+getShiftB()));
 		} catch ( Exception e ) {
-			System.out.println("Exception is: " + e);
+			System.out.println("WorldObject.drawObj(): " + e);
 		}
 	}
 	
@@ -244,7 +247,7 @@ public class WorldObject {
 		        gl.glVertex3d(-drawSize,-drawSize, squareSize);   // Bottom Left
 		        gl.glEnd();
 	        	}	 
-		} catch ( Exception e ) { System.out.println("Exception is: " + e);
+		} catch ( Exception e ) { System.out.println("WorldObject.drawObjColour(): " + e);
 		}
 	}
 
@@ -279,4 +282,5 @@ public class WorldObject {
 	public void setDrawSize(double drawSize) {
 		this.drawSize = drawSize;
 	}
+
 }
